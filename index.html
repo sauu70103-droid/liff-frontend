@@ -14,12 +14,12 @@
       --text-main: #4A3B32;
       --text-muted: #8C7B70;
       --border-color: #E2D3C5;
+      --secondary-bg: #EFE4DA;
     }
     body { font-family: '微軟正黑體', sans-serif; background-color: var(--bg-color); margin: 0; padding: 15px; color: var(--text-main); }
     .container { max-width: 500px; margin: 0 auto; }
     
     .logo-container { text-align: center; margin-bottom: 20px; }
-    /* 移除 mix-blend-mode，讓透明 PNG 自然顯示 */
     .logo-container img { max-width: 160px; height: auto; }
 
     .card { background: var(--card-bg); border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(139, 111, 88, 0.1); }
@@ -31,7 +31,10 @@
     button { background-color: var(--primary-color); color: white; border: none; cursor: pointer; font-weight: bold; transition: 0.3s; }
     button:hover { background-color: var(--primary-hover); }
     
-    .badge { display: inline-block; padding: 4px 10px; background: #EFE4DA; color: var(--text-main); border-radius: 6px; font-size: 13px; font-weight: bold; border: 1px solid var(--primary-color); }
+    .btn-secondary { background-color: var(--secondary-bg); color: var(--text-main); border: 1px solid var(--primary-color); }
+    .btn-secondary:hover { background-color: var(--border-color); }
+
+    .badge { display: inline-block; padding: 4px 10px; background: var(--secondary-bg); color: var(--text-main); border-radius: 6px; font-size: 13px; font-weight: bold; border: 1px solid var(--primary-color); }
     .hidden { display: none !important; }
 
     .tabs { display: flex; justify-content: space-between; margin-bottom: 20px; background: var(--card-bg); border-radius: 12px; padding: 5px; box-shadow: 0 2px 5px rgba(139, 111, 88, 0.1); }
@@ -40,13 +43,16 @@
     
     .record-item { border-bottom: 1px solid var(--border-color); padding-bottom: 15px; margin-bottom: 15px; }
     .record-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+    
+    .info-row { display: flex; margin: 10px 0; font-size: 15px; }
+    .info-label { width: 80px; color: var(--text-muted); font-weight: bold; }
+    .info-value { flex: 1; color: var(--text-main); font-weight: 500; }
   </style>
 </head>
 <body>
 
   <div class="container">
     
-    <!-- 頂部純粹 Logo：讀取 GitHub 上的 logo.png -->
     <div class="logo-container">
       <img src="./logo.png" alt="錦葳">
     </div>
@@ -71,14 +77,39 @@
       </div>
 
       <div id="tab1" class="tab-content">
+        <!-- 顯示資料區塊 -->
         <div class="card">
           <h2 id="displayName" style="margin-bottom: 5px;">載入中...</h2>
           <p style="margin-top:0;"><span class="badge" id="displayTier">一般會員</span> <span class="badge" id="displayPartner">無特約</span></p>
-          <p>您的專屬編號：<span id="userJwId" style="color: var(--primary-color); font-weight:bold;"></span></p>
-          <p>剩餘調理堂數：<strong id="displayPackages" style="font-size: 22px; color: #D35400;">0</strong> 堂</p>
+          
+          <hr style="border: 0; border-top: 1px dashed var(--border-color); margin: 15px 0;">
+          
+          <div class="info-row">
+            <div class="info-label">專屬編號</div>
+            <div class="info-value" id="userJwId" style="color: var(--primary-color);"></div>
+          </div>
+          <div class="info-row">
+            <div class="info-label">手機號碼</div>
+            <div class="info-value" id="displayPhone"></div>
+          </div>
+          <div class="info-row">
+            <div class="info-label">生　　日</div>
+            <div class="info-value" id="displayBirthday"></div>
+          </div>
+          <div class="info-row">
+            <div class="info-label">性　　別</div>
+            <div class="info-value" id="displayGender"></div>
+          </div>
+          <div class="info-row" style="margin-top: 15px;">
+            <div class="info-label" style="line-height: 28px;">剩餘堂數</div>
+            <div class="info-value"><strong id="displayPackages" style="font-size: 22px; color: #D35400;">0</strong> 堂</div>
+          </div>
+
+          <button id="toggleEditBtn" class="btn-secondary" onclick="toggleEditForm()" style="margin-top: 15px; margin-bottom: 0;">修改個人資料</button>
         </div>
 
-        <div class="card">
+        <!-- 編輯表單區塊 (預設加入 hidden) -->
+        <div class="card hidden" id="profileEditCard">
           <h3>修改個人資料</h3>
           <label>姓名</label>
           <input type="text" id="editName">
@@ -94,6 +125,7 @@
             <option value="其他">其他</option>
           </select>
           <button onclick="updateProfile()">儲存修改</button>
+          <button class="btn-secondary" onclick="toggleEditForm()">取消修改</button>
         </div>
       </div>
 
@@ -193,20 +225,45 @@
       document.getElementById("mainSystem").classList.remove("hidden");
       currentJwId = data.profile.id;
       
+      // 1. 渲染頂部狀態與基本資料展示區塊
       document.getElementById("displayName").textContent = data.profile.name + "，您好！";
       document.getElementById("userJwId").textContent = data.profile.id;
       document.getElementById("displayTier").textContent = data.profile.tier || "一般會員";
       document.getElementById("displayPartner").textContent = data.profile.partner ? ("特約：" + data.profile.partner) : "無特約";
       document.getElementById("displayPackages").textContent = data.profile.packages || 0;
       
-      document.getElementById("editName").value = data.profile.name || "";
-      document.getElementById("editPhone").value = data.profile.phone || "";
+      document.getElementById("displayPhone").textContent = data.profile.phone || "尚未填寫";
+      document.getElementById("displayGender").textContent = data.profile.gender || "尚未填寫";
+      
+      let displayBday = "尚未填寫";
       if(data.profile.birthday) {
         let d = new Date(data.profile.birthday);
-        if(!isNaN(d)) document.getElementById("editBirthday").value = d.toISOString().split('T')[0];
+        if(!isNaN(d)) {
+          displayBday = d.toLocaleDateString();
+          document.getElementById("editBirthday").value = d.toISOString().split('T')[0];
+        }
       }
+      document.getElementById("displayBirthday").textContent = displayBday;
+
+      // 2. 將資料預填入修改表單中
+      document.getElementById("editName").value = data.profile.name || "";
+      document.getElementById("editPhone").value = data.profile.phone || "";
       document.getElementById("editGender").value = data.profile.gender || "";
 
+      // 3. 智慧折疊邏輯：判斷資料是否齊全
+      const isProfileIncomplete = !data.profile.phone || !data.profile.birthday || !data.profile.gender || data.profile.name.includes("新會員") || data.profile.name.includes("請更新資料");
+      
+      if (isProfileIncomplete) {
+        // 資料不全，強制展開表單
+        document.getElementById("profileEditCard").classList.remove("hidden");
+        document.getElementById("toggleEditBtn").textContent = "隱藏修改表單";
+      } else {
+        // 資料齊全，收起表單
+        document.getElementById("profileEditCard").classList.add("hidden");
+        document.getElementById("toggleEditBtn").textContent = "修改個人資料";
+      }
+
+      // 4. 渲染歷史紀錄
       const historyContainer = document.getElementById("historyList");
       historyContainer.innerHTML = ""; 
       if (data.history && data.history.length > 0) {
@@ -224,6 +281,20 @@
         });
       } else {
         historyContainer.innerHTML = "<p style='color: var(--text-muted);'>尚無調理紀錄。</p>";
+      }
+    }
+
+    // 展開/收合編輯表單的切換按鈕功能
+    function toggleEditForm() {
+      const editCard = document.getElementById("profileEditCard");
+      const toggleBtn = document.getElementById("toggleEditBtn");
+      
+      if (editCard.classList.contains("hidden")) {
+        editCard.classList.remove("hidden");
+        toggleBtn.textContent = "隱藏修改表單";
+      } else {
+        editCard.classList.add("hidden");
+        toggleBtn.textContent = "修改個人資料";
       }
     }
 
