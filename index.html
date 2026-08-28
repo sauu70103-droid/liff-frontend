@@ -4,75 +4,134 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>錦葳專屬會員系統</title>
-  <!-- 載入 LINE LIFF SDK -->
   <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <style>
-    /* CSS 外觀樣式設定 */
-    body { font-family: '微軟正黑體', sans-serif; background-color: #f4f5f7; margin: 0; padding: 20px; color: #333; }
+    /* 奶茶色系 CSS 變數與全局設定 */
+    :root {
+      --bg-color: #F5EBE1;        /* 奶茶底色 */
+      --card-bg: #FFFFFF;         /* 卡片純白 */
+      --primary-color: #B9936C;   /* 主按鈕 / 頁籤 (奶茶深色) */
+      --primary-hover: #9E7A55;
+      --text-main: #4A3B32;       /* 深咖啡字體 */
+      --text-muted: #8C7B70;
+      --border-color: #E2D3C5;
+    }
+    body { font-family: '微軟正黑體', sans-serif; background-color: var(--bg-color); margin: 0; padding: 15px; color: var(--text-main); }
     .container { max-width: 500px; margin: 0 auto; }
-    .card { background: #fff; border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-    h2, h3 { margin-top: 0; color: #2c3e50; }
-    input, select, button { width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 8px; border: 1px solid #ddd; box-sizing: border-box; font-size: 16px; }
-    button { background-color: #2c3e50; color: white; border: none; cursor: pointer; font-weight: bold; }
-    button:hover { background-color: #1a252f; }
-    .record-item { border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 10px; }
+    
+    /* Logo 區塊 */
+    .logo-container { text-align: center; margin-bottom: 20px; }
+    .logo-container img { max-width: 150px; height: auto; }
+
+    .card { background: var(--card-bg); border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(139, 111, 88, 0.1); }
+    h2, h3 { margin-top: 0; color: var(--text-main); }
+    
+    input, select, button { width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 8px; border: 1px solid var(--border-color); box-sizing: border-box; font-size: 16px; color: var(--text-main); background: #faf8f5;}
+    input:focus, select:focus { outline: none; border-color: var(--primary-color); }
+    
+    button { background-color: var(--primary-color); color: white; border: none; cursor: pointer; font-weight: bold; transition: 0.3s; }
+    button:hover { background-color: var(--primary-hover); }
+    
+    .badge { display: inline-block; padding: 4px 10px; background: #EFE4DA; color: var(--text-main); border-radius: 6px; font-size: 13px; font-weight: bold; border: 1px solid var(--primary-color); }
+    .hidden { display: none !important; }
+
+    /* 頁籤系統 (Tabs) */
+    .tabs { display: flex; justify-content: space-between; margin-bottom: 20px; background: var(--card-bg); border-radius: 12px; padding: 5px; box-shadow: 0 2px 5px rgba(139, 111, 88, 0.1); }
+    .tab-btn { flex: 1; background: transparent; color: var(--text-muted); border: none; margin-bottom: 0; padding: 10px 0; border-radius: 8px; }
+    .tab-btn.active { background: var(--primary-color); color: white; }
+    
+    .record-item { border-bottom: 1px solid var(--border-color); padding-bottom: 15px; margin-bottom: 15px; }
     .record-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
-    .badge { display: inline-block; padding: 4px 8px; background: #e8f4f8; color: #007bb5; border-radius: 4px; font-size: 12px; }
-    .hidden { display: none; }
   </style>
 </head>
 <body>
 
   <div class="container">
     
-    <!-- 狀態顯示區 -->
-    <div id="loadingMsg" class="card" style="text-align:center; color: #666;">
-      <h3>連線至錦葳系統中，請稍候...</h3>
+    <!-- 頂部純粹 Logo -->
+    <div class="logo-container">
+      <img src="https://drive.google.com/uc?export=view&id=1JVQjCvvYtHMqLQFINEvXkA7Qz8WXNQy6" alt="錦葳">
     </div>
 
-    <!-- 區塊 1：首次綁定區 -->
+    <!-- 狀態顯示區 -->
+    <div id="loadingMsg" class="card" style="text-align:center;">
+      <h3 style="color: var(--text-muted);">連線至系統中，請稍候...</h3>
+    </div>
+
+    <!-- 區塊 1：首次綁定區 (輸入手機號碼) -->
     <div id="bindSection" class="card hidden">
       <h2>會員身分綁定</h2>
-      <p>系統偵測到您是首次使用，請輸入您的會員編號進行綁定。未來開啟將自動登入。</p>
-      <input type="text" id="memberIdInput" placeholder="例如：JW0912345678">
+      <p style="color: var(--text-muted);">請輸入您的手機號碼進行驗證。未來開啟將自動登入。</p>
+      <input type="tel" id="phoneInput" placeholder="例：0912345678" maxlength="10">
       <button onclick="bindAccount()">確認綁定</button>
     </div>
 
-    <!-- 區塊 2：會員儀表板 -->
-    <div id="dashboardSection" class="hidden">
+    <!-- 區塊 2：會員系統主結構 -->
+    <div id="mainSystem" class="hidden">
       
-      <!-- 頂級會員卡 -->
-      <div class="card">
-        <h2 id="displayName">會員姓名</h2>
-        <p><span class="badge" id="displayTier">一般會員</span> <span class="badge" id="displayPartner">無特約</span></p>
-        <p>您的專屬編號：<span id="userJwId"></span></p>
-        <p>剩餘調理堂數：<strong id="displayPackages" style="font-size: 20px; color: #e74c3c;">0</strong> 堂</p>
+      <!-- 三大分頁切換列 -->
+      <div class="tabs">
+        <button class="tab-btn active" id="btnTab1" onclick="switchTab(1)">基本資料</button>
+        <button class="tab-btn" id="btnTab2" onclick="switchTab(2)">調理紀錄</button>
+        <button class="tab-btn" id="btnTab3" onclick="switchTab(3)">預約專區</button>
       </div>
 
-      <!-- 最近三次調理紀錄 -->
-      <div class="card">
-        <h3>最近調理紀錄</h3>
-        <div id="historyList">
-          <!-- 紀錄會由 JavaScript 動態產生 -->
+      <!-- [分頁一]：基本資料與設定 -->
+      <div id="tab1" class="tab-content">
+        <div class="card">
+          <h2 id="displayName" style="margin-bottom: 5px;">載入中...</h2>
+          <p style="margin-top:0;"><span class="badge" id="displayTier">一般會員</span> <span class="badge" id="displayPartner">無特約</span></p>
+          <p>您的專屬編號：<span id="userJwId" style="color: var(--primary-color); font-weight:bold;"></span></p>
+          <p>剩餘調理堂數：<strong id="displayPackages" style="font-size: 22px; color: #D35400;">0</strong> 堂</p>
+        </div>
+
+        <div class="card">
+          <h3>修改個人資料</h3>
+          <label>姓名</label>
+          <input type="text" id="editName">
+          <label>手機號碼</label>
+          <input type="tel" id="editPhone" maxlength="10">
+          <label>生日</label>
+          <input type="date" id="editBirthday">
+          <label>性別</label>
+          <select id="editGender">
+            <option value="">請選擇</option>
+            <option value="男">男</option>
+            <option value="女">女</option>
+            <option value="其他">其他</option>
+          </select>
+          <button onclick="updateProfile()">儲存修改</button>
         </div>
       </div>
 
-      <!-- 預約表單 -->
-      <div class="card">
-        <h3>申請預約調理</h3>
-        <label>期望方案</label>
-        <select id="serviceType">
-          <option value="全身調理">全身調理</option>
-          <option value="無痛滑罐">無痛滑罐</option>
-          <option value="單部位放鬆">單部位放鬆</option>
-        </select>
-        <label>期望時間 1 (必填)</label>
-        <input type="datetime-local" id="time1">
-        <label>期望時間 2 (選填)</label>
-        <input type="datetime-local" id="time2">
-        <label>期望時間 3 (選填)</label>
-        <input type="datetime-local" id="time3">
-        <button onclick="submitBooking()">送出預約申請</button>
+      <!-- [分頁二]：調理紀錄 -->
+      <div id="tab2" class="tab-content hidden">
+        <div class="card">
+          <h3>最近調理紀錄</h3>
+          <div id="historyList">
+            <!-- 動態產生 -->
+          </div>
+        </div>
+      </div>
+
+      <!-- [分頁三]：預約專區 -->
+      <div id="tab3" class="tab-content hidden">
+        <div class="card">
+          <h3>申請預約調理</h3>
+          <label>期望方案</label>
+          <select id="serviceType">
+            <option value="全身調理">全身調理</option>
+            <option value="無痛滑罐">無痛滑罐</option>
+            <option value="單部位放鬆">單部位放鬆</option>
+          </select>
+          <label>期望時間 1 (必填)</label>
+          <input type="datetime-local" id="time1">
+          <label>期望時間 2 (選填)</label>
+          <input type="datetime-local" id="time2">
+          <label>期望時間 3 (選填)</label>
+          <input type="datetime-local" id="time3">
+          <button onclick="submitBooking()">送出預約申請</button>
+        </div>
       </div>
 
     </div>
@@ -81,20 +140,15 @@
   <script>
     /**
      * ==========================================
-     * 參數設定區
+     * 參數設定區 (已完整寫入，無需修改)
      * ==========================================
      */
-    // 已經為你更新好的 GAS API 網址
     const GAS_URL = "https://script.google.com/macros/s/AKfycbwApGqvuUMuERNtrlEr1NHSKxooH_fD9XF_t1v-iKg_gDJ0kRBqnrKodhjVlIWa-u16sw/exec"; 
-    
-    // 已經為你更新好的專屬 LIFF ID
     const LIFF_ID = "2011305352-GK5jDrbh"; 
     
-    // 全域變數
     let userLineUid = "";
     let currentJwId = "";
 
-    // 1. 初始化 LIFF SDK
     window.onload = function() {
       liff.init({ liffId: LIFF_ID }).then(() => {
         if (!liff.isLoggedIn()) {
@@ -103,15 +157,13 @@
           getUserDataAndLogin();
         }
       }).catch(err => {
-        document.getElementById("loadingMsg").innerHTML = "<h3>LIFF 初始化失敗</h3><p>" + err + "</p>";
+        document.getElementById("loadingMsg").innerHTML = "<h3>LIFF 載入失敗</h3>";
       });
     };
 
-    // 2. 取得 LINE UID 並向後端請求自動登入
     function getUserDataAndLogin() {
       liff.getProfile().then(profile => {
         userLineUid = profile.userId;
-        
         fetch(GAS_URL, {
           method: "POST",
           body: JSON.stringify({ action: "autoLogin", lineUid: userLineUid })
@@ -119,32 +171,26 @@
         .then(res => res.json())
         .then(data => {
           document.getElementById("loadingMsg").classList.add("hidden");
-          
           if (data.status === "success") {
-            // 自動登入成功
             renderDashboard(data);
           } else {
-            // 沒找到資料，顯示綁定畫面
             document.getElementById("bindSection").classList.remove("hidden");
           }
-        }).catch(err => {
-          document.getElementById("loadingMsg").innerHTML = "<h3>網路連線錯誤</h3><p>無法連線至後端系統。</p>";
-        });
+        }).catch(err => alert("網路錯誤"));
       });
     }
 
-    // 3. 手動綁定函式
     function bindAccount() {
-      const jwId = document.getElementById("memberIdInput").value.trim();
-      if(!jwId) { alert("請輸入 JW 會員編號！"); return; }
+      const phone = document.getElementById("phoneInput").value.trim();
+      if(phone.length !== 10) { alert("請輸入完整的 10 碼手機號碼！"); return; }
       
       document.getElementById("bindSection").classList.add("hidden");
       document.getElementById("loadingMsg").classList.remove("hidden");
-      document.getElementById("loadingMsg").innerHTML = "<h3>綁定資料中，請稍候...</h3>";
+      document.getElementById("loadingMsg").innerHTML = "<h3>綁定資料中...</h3>";
 
       fetch(GAS_URL, {
         method: "POST",
-        body: JSON.stringify({ action: "bindAccount", lineUid: userLineUid, memberId: jwId })
+        body: JSON.stringify({ action: "bindAccount", lineUid: userLineUid, phone: phone })
       })
       .then(res => res.json())
       .then(data => {
@@ -156,87 +202,102 @@
           alert("綁定失敗：" + data.message);
           document.getElementById("bindSection").classList.remove("hidden");
         }
-      }).catch(err => {
-        alert("網路錯誤，綁定失敗。");
-        document.getElementById("loadingMsg").classList.add("hidden");
-        document.getElementById("bindSection").classList.remove("hidden");
       });
     }
 
-    // 4. 將資料渲染至會員儀表板
     function renderDashboard(data) {
-      document.getElementById("dashboardSection").classList.remove("hidden");
+      document.getElementById("mainSystem").classList.remove("hidden");
+      currentJwId = data.profile.id;
       
-      // 更新基本資料
       document.getElementById("displayName").textContent = data.profile.name + "，您好！";
       document.getElementById("userJwId").textContent = data.profile.id;
       document.getElementById("displayTier").textContent = data.profile.tier || "一般會員";
       document.getElementById("displayPartner").textContent = data.profile.partner ? ("特約：" + data.profile.partner) : "無特約";
       document.getElementById("displayPackages").textContent = data.profile.packages || 0;
       
-      currentJwId = data.profile.id; // 存下 JW ID 供預約功能使用
+      document.getElementById("editName").value = data.profile.name || "";
+      document.getElementById("editPhone").value = data.profile.phone || "";
+      if(data.profile.birthday) {
+        let d = new Date(data.profile.birthday);
+        if(!isNaN(d)) document.getElementById("editBirthday").value = d.toISOString().split('T')[0];
+      }
+      document.getElementById("editGender").value = data.profile.gender || "";
 
-      // 更新歷史紀錄列表
       const historyContainer = document.getElementById("historyList");
       historyContainer.innerHTML = ""; 
-      
       if (data.history && data.history.length > 0) {
         data.history.forEach(record => {
-          const htmlString = `
+          historyContainer.innerHTML += `
             <div class="record-item">
-              <strong>🗓️ ${record.date}</strong> | 負責師傅：${record.therapist}<br>
-              <span style="color: #7f8c8d; font-size: 14px;">方案：${record.serviceType}</span><br>
+              <strong>🗓️ ${record.date}</strong> | ${record.therapist}<br>
+              <span style="color: var(--text-muted); font-size: 14px;">方案：${record.serviceType}</span><br>
               <div style="margin-top: 5px;">
-                ${record.beforeImg ? `<a href="${record.beforeImg}" target="_blank" style="font-size: 12px; color: blue;">查看調理前原圖</a>` : ''}
-                ${record.afterImg ? ` | <a href="${record.afterImg}" target="_blank" style="font-size: 12px; color: blue;">查看調理後原圖</a>` : ''}
+                ${record.beforeImg ? `<a href="${record.beforeImg}" target="_blank" style="font-size: 13px; color: var(--primary-color);">查看調理前</a>` : ''}
+                ${record.afterImg ? ` | <a href="${record.afterImg}" target="_blank" style="font-size: 13px; color: var(--primary-color);">查看調理後</a>` : ''}
               </div>
             </div>
           `;
-          historyContainer.innerHTML += htmlString;
         });
       } else {
-        historyContainer.innerHTML = "<p style='color: #999; font-size: 14px;'>尚無調理紀錄。</p>";
+        historyContainer.innerHTML = "<p style='color: var(--text-muted);'>尚無調理紀錄。</p>";
       }
     }
 
-    // 5. 送出預約申請
+    function updateProfile() {
+      const name = document.getElementById("editName").value;
+      const phone = document.getElementById("editPhone").value;
+      const birthday = document.getElementById("editBirthday").value;
+      const gender = document.getElementById("editGender").value;
+
+      fetch(GAS_URL, {
+        method: "POST",
+        body: JSON.stringify({
+          action: "updateProfile", memberId: currentJwId,
+          name: name, phone: phone, birthday: birthday, gender: gender
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.status === "success") {
+          alert("資料更新成功！");
+          renderDashboard(data); 
+        } else {
+          alert("錯誤：" + data.message);
+        }
+      });
+    }
+
     function submitBooking() {
       const time1 = document.getElementById("time1").value;
       const time2 = document.getElementById("time2").value;
       const time3 = document.getElementById("time3").value;
       const serviceType = document.getElementById("serviceType").value;
 
-      if (!time1) {
-        alert("請至少填寫一個期望時間！");
-        return;
-      }
+      if (!time1) { alert("請至少填寫一個期望時間！"); return; }
 
       fetch(GAS_URL, {
         method: "POST",
         body: JSON.stringify({
-          action: "submitBooking",
-          memberId: currentJwId,
-          time1: time1,
-          time2: time2,
-          time3: time3,
-          serviceType: serviceType
+          action: "submitBooking", memberId: currentJwId,
+          time1: time1, time2: time2, time3: time3, serviceType: serviceType
         })
       })
-      .then(response => response.json())
+      .then(res => res.json())
       .then(data => {
         if (data.status === "success") {
-          alert("預約申請已送出！我們會盡快與您聯繫。");
-          // 清空時間欄位
+          alert("預約申請已送出！");
           document.getElementById("time1").value = "";
           document.getElementById("time2").value = "";
           document.getElementById("time3").value = "";
-        } else {
-          alert("錯誤：" + data.message);
-        }
-      })
-      .catch(error => {
-        alert("網路連線發生錯誤，請稍後再試。");
+        } else { alert("錯誤：" + data.message); }
       });
+    }
+
+    function switchTab(tabIndex) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+      document.getElementById('tab' + tabIndex).classList.remove('hidden');
+      document.getElementById('btnTab' + tabIndex).classList.add('active');
     }
   </script>
 </body>
