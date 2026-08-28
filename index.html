@@ -6,22 +6,20 @@
   <title>錦葳專屬會員系統</title>
   <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <style>
-    /* 奶茶色系 CSS 變數與全局設定 */
     :root {
-      --bg-color: #F5EBE1;        /* 奶茶底色 */
-      --card-bg: #FFFFFF;         /* 卡片純白 */
-      --primary-color: #B9936C;   /* 主按鈕 / 頁籤 (奶茶深色) */
+      --bg-color: #F8F6F1;        /* 調整為與 logo 背景完美融合的微米白色 */
+      --card-bg: #FFFFFF;
+      --primary-color: #B9936C;
       --primary-hover: #9E7A55;
-      --text-main: #4A3B32;       /* 深咖啡字體 */
+      --text-main: #4A3B32;
       --text-muted: #8C7B70;
       --border-color: #E2D3C5;
     }
     body { font-family: '微軟正黑體', sans-serif; background-color: var(--bg-color); margin: 0; padding: 15px; color: var(--text-main); }
     .container { max-width: 500px; margin: 0 auto; }
     
-    /* Logo 區塊 */
     .logo-container { text-align: center; margin-bottom: 20px; }
-    .logo-container img { max-width: 150px; height: auto; }
+    .logo-container img { max-width: 160px; height: auto; mix-blend-mode: multiply; } /* 加入色彩增值模式確保背景完美交融 */
 
     .card { background: var(--card-bg); border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(139, 111, 88, 0.1); }
     h2, h3 { margin-top: 0; color: var(--text-main); }
@@ -35,7 +33,6 @@
     .badge { display: inline-block; padding: 4px 10px; background: #EFE4DA; color: var(--text-main); border-radius: 6px; font-size: 13px; font-weight: bold; border: 1px solid var(--primary-color); }
     .hidden { display: none !important; }
 
-    /* 頁籤系統 (Tabs) */
     .tabs { display: flex; justify-content: space-between; margin-bottom: 20px; background: var(--card-bg); border-radius: 12px; padding: 5px; box-shadow: 0 2px 5px rgba(139, 111, 88, 0.1); }
     .tab-btn { flex: 1; background: transparent; color: var(--text-muted); border: none; margin-bottom: 0; padding: 10px 0; border-radius: 8px; }
     .tab-btn.active { background: var(--primary-color); color: white; }
@@ -48,17 +45,15 @@
 
   <div class="container">
     
-    <!-- 頂部純粹 Logo -->
+    <!-- 頂部純粹 Logo：讀取 GitHub 上的 logo.jpg -->
     <div class="logo-container">
-      <img src="https://drive.google.com/uc?export=view&id=1JVQjCvvYtHMqLQFINEvXkA7Qz8WXNQy6" alt="錦葳">
+      <img src="./logo.jpg" alt="錦葳">
     </div>
 
-    <!-- 狀態顯示區 -->
     <div id="loadingMsg" class="card" style="text-align:center;">
       <h3 style="color: var(--text-muted);">連線至系統中，請稍候...</h3>
     </div>
 
-    <!-- 區塊 1：首次綁定區 (輸入手機號碼) -->
     <div id="bindSection" class="card hidden">
       <h2>會員身分綁定</h2>
       <p style="color: var(--text-muted);">請輸入您的手機號碼進行驗證。未來開啟將自動登入。</p>
@@ -66,17 +61,14 @@
       <button onclick="bindAccount()">確認綁定</button>
     </div>
 
-    <!-- 區塊 2：會員系統主結構 -->
     <div id="mainSystem" class="hidden">
       
-      <!-- 三大分頁切換列 -->
       <div class="tabs">
         <button class="tab-btn active" id="btnTab1" onclick="switchTab(1)">基本資料</button>
         <button class="tab-btn" id="btnTab2" onclick="switchTab(2)">調理紀錄</button>
         <button class="tab-btn" id="btnTab3" onclick="switchTab(3)">預約專區</button>
       </div>
 
-      <!-- [分頁一]：基本資料與設定 -->
       <div id="tab1" class="tab-content">
         <div class="card">
           <h2 id="displayName" style="margin-bottom: 5px;">載入中...</h2>
@@ -104,17 +96,13 @@
         </div>
       </div>
 
-      <!-- [分頁二]：調理紀錄 -->
       <div id="tab2" class="tab-content hidden">
         <div class="card">
           <h3>最近調理紀錄</h3>
-          <div id="historyList">
-            <!-- 動態產生 -->
-          </div>
+          <div id="historyList"></div>
         </div>
       </div>
 
-      <!-- [分頁三]：預約專區 -->
       <div id="tab3" class="tab-content hidden">
         <div class="card">
           <h3>申請預約調理</h3>
@@ -138,11 +126,6 @@
   </div>
 
   <script>
-    /**
-     * ==========================================
-     * 參數設定區 (已完整寫入，無需修改)
-     * ==========================================
-     */
     const GAS_URL = "https://script.google.com/macros/s/AKfycbwApGqvuUMuERNtrlEr1NHSKxooH_fD9XF_t1v-iKg_gDJ0kRBqnrKodhjVlIWa-u16sw/exec"; 
     const LIFF_ID = "2011305352-GK5jDrbh"; 
     
