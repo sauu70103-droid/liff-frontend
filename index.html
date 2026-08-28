@@ -7,7 +7,7 @@
   <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <style>
     :root {
-      --bg-color: #F8F6F1;        /* 調整為與 logo 背景完美融合的微米白色 */
+      --bg-color: #F8F6F1;
       --card-bg: #FFFFFF;
       --primary-color: #B9936C;
       --primary-hover: #9E7A55;
@@ -19,7 +19,8 @@
     .container { max-width: 500px; margin: 0 auto; }
     
     .logo-container { text-align: center; margin-bottom: 20px; }
-    .logo-container img { max-width: 160px; height: auto; mix-blend-mode: multiply; } /* 加入色彩增值模式確保背景完美交融 */
+    /* 移除 mix-blend-mode，讓透明 PNG 自然顯示 */
+    .logo-container img { max-width: 160px; height: auto; }
 
     .card { background: var(--card-bg); border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(139, 111, 88, 0.1); }
     h2, h3 { margin-top: 0; color: var(--text-main); }
@@ -45,9 +46,9 @@
 
   <div class="container">
     
-    <!-- 頂部純粹 Logo：讀取 GitHub 上的 logo.jpg -->
+    <!-- 頂部純粹 Logo：讀取 GitHub 上的 logo.png -->
     <div class="logo-container">
-      <img src="./logo.jpg" alt="錦葳">
+      <img src="./logo.png" alt="錦葳">
     </div>
 
     <div id="loadingMsg" class="card" style="text-align:center;">
