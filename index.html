@@ -15,6 +15,8 @@
       --text-muted: #8C7B70;
       --border-color: #E2D3C5;
       --secondary-bg: #EFE4DA;
+      --success-color: #4CAF50;
+      --pending-color: #F39C12;
     }
     body { font-family: '微軟正黑體', sans-serif; background-color: var(--bg-color); margin: 0; padding: 15px; color: var(--text-main); }
     .container { max-width: 500px; margin: 0 auto; }
@@ -34,6 +36,9 @@
     
     .btn-secondary { background-color: var(--secondary-bg); color: var(--text-main); border: 1px solid var(--primary-color); }
     .btn-secondary:hover { background-color: var(--border-color); }
+    
+    .btn-small { padding: 6px 12px; font-size: 13px; margin-bottom: 0; width: auto; display: inline-block; border-radius: 6px; }
+    .btn-outline { background: transparent; color: var(--primary-color); border: 1px solid var(--primary-color); }
 
     .badge { display: inline-block; padding: 4px 10px; background: var(--secondary-bg); color: var(--text-main); border-radius: 6px; font-size: 13px; font-weight: bold; border: 1px solid var(--primary-color); }
     .hidden { display: none !important; }
@@ -49,10 +54,15 @@
     .info-label { width: 80px; color: var(--text-muted); font-weight: bold; }
     .info-value { flex: 1; color: var(--text-main); font-weight: 500; }
     
-    /* 日期與時間並排顯示的容器 */
     .datetime-group { display: flex; gap: 10px; margin-bottom: 15px; }
-    .datetime-group input { flex: 1; margin-bottom: 0; }
-    .datetime-group select { flex: 1; margin-bottom: 0; }
+    .datetime-group input, .datetime-group select { flex: 1; margin-bottom: 0; }
+
+    /* 預約狀態區塊專用樣式 */
+    .booking-box { border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; margin-bottom: 12px; background: #faf8f5; }
+    .booking-box .title { font-weight: bold; margin-bottom: 5px; font-size: 15px; }
+    .booking-box .detail { color: var(--text-muted); font-size: 14px; margin-bottom: 10px; }
+    .status-confirmed { color: var(--success-color); font-weight: bold; font-size: 13px; }
+    .status-pending { color: var(--pending-color); font-weight: bold; font-size: 13px; }
   </style>
 </head>
 <body>
@@ -82,6 +92,7 @@
         <button class="tab-btn" id="btnTab3" onclick="switchTab(3)">預約專區</button>
       </div>
 
+      <!-- 分頁 1：基本資料與預約狀態 -->
       <div id="tab1" class="tab-content">
         <div class="card">
           <h2 id="displayName" style="margin-bottom: 5px;">載入中...</h2>
@@ -97,22 +108,24 @@
             <div class="info-label">手機號碼</div>
             <div class="info-value" id="displayPhone"></div>
           </div>
-          <div class="info-row">
-            <div class="info-label">生　　日</div>
-            <div class="info-value" id="displayBirthday"></div>
-          </div>
-          <div class="info-row">
-            <div class="info-label">性　　別</div>
-            <div class="info-value" id="displayGender"></div>
-          </div>
           <div class="info-row" style="margin-top: 15px;">
             <div class="info-label" style="line-height: 28px;">剩餘堂數</div>
             <div class="info-value"><strong id="displayPackages" style="font-size: 22px; color: #D35400;">0</strong> 堂</div>
           </div>
+          
+          <button id="toggleEditBtn" class="btn-secondary" onclick="toggleEditForm()" style="margin-top: 15px; margin-bottom: 15px;">修改個人資料</button>
 
-          <button id="toggleEditBtn" class="btn-secondary" onclick="toggleEditForm()" style="margin-top: 15px; margin-bottom: 0;">修改個人資料</button>
+          <!-- 新增：預約狀態展示區 -->
+          <hr style="border: 0; border-top: 1px dashed var(--border-color); margin: 15px 0;">
+          <h3 style="margin-bottom: 15px; font-size: 16px;">📝 您未來的預約</h3>
+          
+          <div id="upcomingBookingsContainer">
+            <!-- 預約狀態將由 JavaScript 動態填入 -->
+          </div>
+
         </div>
 
+        <!-- 修改資料表單 (折疊) -->
         <div class="card hidden" id="profileEditCard">
           <h3>修改個人資料</h3>
           <label>姓名</label>
@@ -133,6 +146,7 @@
         </div>
       </div>
 
+      <!-- 分頁 2：歷史紀錄 -->
       <div id="tab2" class="tab-content hidden">
         <div class="card">
           <h3>最近調理紀錄</h3>
@@ -140,11 +154,10 @@
         </div>
       </div>
 
-      <!-- 預約專區升級：拆分日期與時間 -->
+      <!-- 分頁 3：預約表單 -->
       <div id="tab3" class="tab-content hidden">
         <div class="card">
           <h3>預約調理</h3>
-          
           <label>方案</label>
           <select id="serviceType">
             <option value="局部滑罐放鬆">局部滑罐放鬆</option>
@@ -153,28 +166,23 @@
             <option value="單部位舒緩修復">單部位舒緩修復</option>
             <option value="全身全方位深度修復">全身全方位深度修復</option>
           </select>
-          
           <label>期望時間 1 (必填)</label>
           <div class="datetime-group">
             <input type="date" id="date1">
             <select id="time1"></select>
           </div>
-          
           <label>期望時間 2 (選填)</label>
           <div class="datetime-group">
             <input type="date" id="date2">
             <select id="time2"></select>
           </div>
-          
           <label>期望時間 3 (選填)</label>
           <div class="datetime-group">
             <input type="date" id="date3">
             <select id="time3"></select>
           </div>
-          
           <label>狀況描述與備註 (選填)</label>
           <textarea id="bookingRemarks" rows="3" placeholder="請簡單描述您的狀況，或希望師傅加強調理的部位..."></textarea>
-          
           <button onclick="submitBooking()">送出預約申請</button>
         </div>
       </div>
@@ -190,9 +198,7 @@
     let currentJwId = "";
 
     window.onload = function() {
-      // 初始化時間選單與日期限制
       setupBookingInputs();
-      
       liff.init({ liffId: LIFF_ID }).then(() => {
         if (!liff.isLoggedIn()) {
           liff.login(); 
@@ -204,17 +210,13 @@
       });
     };
 
-    // 【新增功能】初始化預約日期與時間下拉選單
     function setupBookingInputs() {
-      // 設定日期最小值為今天
       const today = new Date();
-      // 因應台灣時區轉換
       const todayString = new Date(today.getTime() - (today.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
       document.getElementById("date1").min = todayString;
       document.getElementById("date2").min = todayString;
       document.getElementById("date3").min = todayString;
 
-      // 產生 10:00 到 21:00 的時間選項
       let optionsHtml = '<option value="">時間</option>';
       for (let h = 10; h <= 21; h++) {
         let hour = h.toString().padStart(2, '0');
@@ -226,9 +228,8 @@
       document.getElementById("time3").innerHTML = optionsHtml;
     }
 
-    // 【新增功能】驗證選擇的時間是否大於現在時間 + 1 小時
     function validateBookingTime(dateVal, timeVal) {
-      if (!dateVal || !timeVal) return true; // 若沒填寫完整交給後續防呆處理
+      if (!dateVal || !timeVal) return true; 
       const selectedTime = new Date(`${dateVal}T${timeVal}:00`);
       const oneHourLater = new Date(new Date().getTime() + 60 * 60 * 1000);
       return selectedTime >= oneHourLater;
@@ -287,20 +288,12 @@
       document.getElementById("displayTier").textContent = data.profile.tier || "一般會員";
       document.getElementById("displayPartner").textContent = data.profile.partner ? ("特約：" + data.profile.partner) : "無特約";
       document.getElementById("displayPackages").textContent = data.profile.packages || 0;
-      
       document.getElementById("displayPhone").textContent = data.profile.phone || "尚未填寫";
-      document.getElementById("displayGender").textContent = data.profile.gender || "尚未填寫";
       
-      let displayBday = "尚未填寫";
       if(data.profile.birthday) {
         let d = new Date(data.profile.birthday);
-        if(!isNaN(d)) {
-          displayBday = d.toLocaleDateString();
-          document.getElementById("editBirthday").value = d.toISOString().split('T')[0];
-        }
+        if(!isNaN(d)) document.getElementById("editBirthday").value = d.toISOString().split('T')[0];
       }
-      document.getElementById("displayBirthday").textContent = displayBday;
-
       if (data.profile.name && data.profile.name.includes("新會員")) {
         document.getElementById("editName").value = "";
       } else {
@@ -309,8 +302,7 @@
       document.getElementById("editPhone").value = data.profile.phone || "";
       document.getElementById("editGender").value = data.profile.gender || "";
 
-      const isProfileIncomplete = !data.profile.phone || !data.profile.birthday || !data.profile.gender || data.profile.name.includes("新會員") || data.profile.name.includes("請更新資料");
-      
+      const isProfileIncomplete = !data.profile.phone || !data.profile.birthday || !data.profile.gender || data.profile.name.includes("新會員");
       if (isProfileIncomplete) {
         document.getElementById("profileEditCard").classList.remove("hidden");
         document.getElementById("toggleEditBtn").textContent = "隱藏修改表單";
@@ -319,6 +311,40 @@
         document.getElementById("toggleEditBtn").textContent = "修改個人資料";
       }
 
+      // ============================================
+      // 渲染未來的預約狀態 (已確認 + 待確認)
+      // ============================================
+      const bookingContainer = document.getElementById("upcomingBookingsContainer");
+      let bookingHtml = "";
+      
+      // 合併兩種預約陣列來處理
+      const allUpcoming = [];
+      if (data.confirmedBookings) allUpcoming.push(...data.confirmedBookings);
+      if (data.pendingBookings) allUpcoming.push(...data.pendingBookings);
+      
+      if (allUpcoming.length > 0) {
+        allUpcoming.forEach(b => {
+          let isConfirmed = b.status === "已確認";
+          let statusHtml = isConfirmed ? `<span class="status-confirmed">✅ 已成功預約</span>` : `<span class="status-pending">⏳ 提交預約中</span>`;
+          let extraInfo = isConfirmed ? `安排師傅：${b.therapist}` : `請等候管理員確認時間`;
+          
+          bookingHtml += `
+            <div class="booking-box">
+              <div class="title">${b.time} - ${b.service}</div>
+              <div class="detail">${statusHtml} | ${extraInfo}</div>
+              <div style="text-align: right;">
+                <button class="btn-small btn-outline" onclick="changeBookingHandler('${b.time}', '${b.service}', 'modify')">修改時間</button>
+                <button class="btn-small btn-secondary" onclick="changeBookingHandler('${b.time}', '${b.service}', 'cancel')" style="margin-left: 5px;">取消</button>
+              </div>
+            </div>
+          `;
+        });
+      } else {
+        bookingHtml = "<p style='color: var(--text-muted); font-size: 14px;'>目前無未來的預約紀錄。</p>";
+      }
+      bookingContainer.innerHTML = bookingHtml;
+
+      // 渲染歷史紀錄
       const historyContainer = document.getElementById("historyList");
       historyContainer.innerHTML = ""; 
       if (data.history && data.history.length > 0) {
@@ -326,17 +352,53 @@
           historyContainer.innerHTML += `
             <div class="record-item">
               <strong>🗓️ ${record.date}</strong> | ${record.therapist}<br>
-              <span style="color: var(--text-muted); font-size: 14px;">方案：${record.serviceType}</span><br>
-              <div style="margin-top: 5px;">
-                ${record.beforeImg ? `<a href="${record.beforeImg}" target="_blank" style="font-size: 13px; color: var(--primary-color);">查看調理前</a>` : ''}
-                ${record.afterImg ? ` | <a href="${record.afterImg}" target="_blank" style="font-size: 13px; color: var(--primary-color);">查看調理後</a>` : ''}
-              </div>
+              <span style="color: var(--text-muted); font-size: 14px;">方案：${record.serviceType}</span>
             </div>
           `;
         });
       } else {
         historyContainer.innerHTML = "<p style='color: var(--text-muted);'>尚無調理紀錄。</p>";
       }
+    }
+
+    // 【新增】處理客人點擊修改/取消預約的邏輯
+    function changeBookingHandler(timeStr, serviceStr, actionType) {
+      let userMessage = "";
+      if (actionType === "modify") {
+        userMessage = prompt(`您想要修改 [${serviceStr}] 的時間。\n請輸入您期望的新時間 (例如 9/5 下午兩點)：`);
+        if (userMessage === null) return; // 客人按了取消
+        if (userMessage.trim() === "") { alert("您必須輸入期望的新時間喔！"); return; }
+      } else {
+        let confirmCancel = confirm(`確定要取消 [${timeStr}] 的 [${serviceStr}] 嗎？`);
+        if (!confirmCancel) return;
+        userMessage = prompt("請簡單描述取消的原因 (選填)：") || "無提供原因";
+      }
+
+      // 顯示發送中，並發送 API 請求
+      document.getElementById("loadingMsg").classList.remove("hidden");
+      document.getElementById("mainSystem").classList.add("hidden");
+
+      fetch(GAS_URL, {
+        method: "POST",
+        body: JSON.stringify({
+          action: "changeBooking", 
+          memberId: currentJwId,
+          bookingTime: timeStr,
+          serviceType: serviceStr,
+          changeType: actionType,
+          userMessage: userMessage
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
+        // 重新載入儀表板
+        getUserDataAndLogin(); 
+        alert("已通知管理人員，請稍待回覆😌");
+      })
+      .catch(err => {
+        alert("網路錯誤，請稍後再試。");
+        getUserDataAndLogin();
+      });
     }
 
     function toggleEditForm() {
@@ -390,7 +452,6 @@
 
       if (!date1 || !time1) { alert("期望時間 1 為必填！請選擇日期與時間。"); return; }
 
-      // 檢查是否符合提前一小時預約的規則
       if (!validateBookingTime(date1, time1)) {
         alert("期望時間 1 無效！預約時間必須至少在 1 小時之後喔！"); return;
       }
@@ -401,7 +462,6 @@
         alert("期望時間 3 無效！預約時間必須至少在 1 小時之後喔！"); return;
       }
 
-      // 將日期與時間組合成字串傳給後端
       const fullTime1 = `${date1} ${time1}`;
       const fullTime2 = (date2 && time2) ? `${date2} ${time2}` : "";
       const fullTime3 = (date3 && time3) ? `${date3} ${time3}` : "";
@@ -429,6 +489,12 @@
           document.getElementById("date3").value = "";
           document.getElementById("time3").value = "";
           document.getElementById("bookingRemarks").value = ""; 
+          
+          // 送出後立刻更新儀表板，讓客人看到「提交預約中」的狀態
+          document.getElementById("loadingMsg").classList.remove("hidden");
+          document.getElementById("mainSystem").classList.add("hidden");
+          getUserDataAndLogin();
+          
         } else { alert("錯誤：" + data.message); }
       });
     }
