@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>錦葳專屬會員系統</title>
   <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <!-- 【優化】導入 SweetAlert2 讓提示視窗更有質感 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <style>
     :root {
       --bg-color: #F8F6F1;
@@ -57,10 +59,13 @@
     .datetime-group { display: flex; gap: 10px; margin-bottom: 15px; }
     .datetime-group input, .datetime-group select { flex: 1; margin-bottom: 0; }
 
-    /* 預約狀態區塊專用樣式 */
-    .booking-box { border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; margin-bottom: 12px; background: #faf8f5; }
-    .booking-box .title { font-weight: bold; margin-bottom: 5px; font-size: 15px; }
-    .booking-box .detail { color: var(--text-muted); font-size: 14px; margin-bottom: 10px; }
+    .booking-box { border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; margin-bottom: 12px; background: #faf8f5; position: relative; overflow: hidden; }
+    .booking-box::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; }
+    .booking-box.pending::before { background: var(--pending-color); }
+    .booking-box.confirmed::before { background: var(--success-color); }
+    
+    .booking-box .title { font-weight: bold; margin-bottom: 5px; font-size: 15px; padding-left: 8px; }
+    .booking-box .detail { color: var(--text-muted); font-size: 14px; margin-bottom: 10px; padding-left: 8px; }
     .status-confirmed { color: var(--success-color); font-weight: bold; font-size: 13px; }
     .status-pending { color: var(--pending-color); font-weight: bold; font-size: 13px; }
   </style>
@@ -68,7 +73,6 @@
 <body>
 
   <div class="container">
-    
     <div class="logo-container">
       <img src="./logo.png" alt="錦葳">
     </div>
@@ -85,7 +89,6 @@
     </div>
 
     <div id="mainSystem" class="hidden">
-      
       <div class="tabs">
         <button class="tab-btn active" id="btnTab1" onclick="switchTab(1)">基本資料</button>
         <button class="tab-btn" id="btnTab2" onclick="switchTab(2)">調理紀錄</button>
@@ -115,17 +118,13 @@
           
           <button id="toggleEditBtn" class="btn-secondary" onclick="toggleEditForm()" style="margin-top: 15px; margin-bottom: 15px;">修改個人資料</button>
 
-          <!-- 新增：預約狀態展示區 -->
+          <!-- 預約狀態展示區 -->
           <hr style="border: 0; border-top: 1px dashed var(--border-color); margin: 15px 0;">
           <h3 style="margin-bottom: 15px; font-size: 16px;">📝 您未來的預約</h3>
-          
-          <div id="upcomingBookingsContainer">
-            <!-- 預約狀態將由 JavaScript 動態填入 -->
-          </div>
-
+          <div id="upcomingBookingsContainer"></div>
         </div>
 
-        <!-- 修改資料表單 (折疊) -->
+        <!-- 修改資料表單 -->
         <div class="card hidden" id="profileEditCard">
           <h3>修改個人資料</h3>
           <label>姓名</label>
@@ -186,7 +185,6 @@
           <button onclick="submitBooking()">送出預約申請</button>
         </div>
       </div>
-
     </div>
   </div>
 
@@ -206,7 +204,7 @@
           getUserDataAndLogin();
         }
       }).catch(err => {
-        document.getElementById("loadingMsg").innerHTML = "<h3>LIFF 載入失敗</h3>";
+        document.getElementById("loadingMsg").innerHTML = "<h3>LIFF 載入失敗，請確認網路連線</h3>";
       });
     };
 
@@ -250,13 +248,16 @@
           } else {
             document.getElementById("bindSection").classList.remove("hidden");
           }
-        }).catch(err => alert("網路錯誤"));
+        }).catch(err => Swal.fire('錯誤', '網路錯誤，請重新開啟。', 'error'));
       });
     }
 
     function bindAccount() {
       const phone = document.getElementById("phoneInput").value.trim();
-      if(phone.length !== 10) { alert("請輸入完整的 10 碼手機號碼！"); return; }
+      if(phone.length !== 10) { 
+        Swal.fire('提示', '請輸入完整的 10 碼手機號碼！', 'warning'); 
+        return; 
+      }
       
       document.getElementById("bindSection").classList.add("hidden");
       document.getElementById("loadingMsg").classList.remove("hidden");
@@ -270,10 +271,10 @@
       .then(data => {
         document.getElementById("loadingMsg").classList.add("hidden");
         if (data.status === "success") {
-          alert("綁定成功！");
+          Swal.fire('成功', '綁定成功！歡迎回來', 'success');
           renderDashboard(data);
         } else {
-          alert("綁定失敗：" + data.message);
+          Swal.fire('失敗', data.message, 'error');
           document.getElementById("bindSection").classList.remove("hidden");
         }
       });
@@ -311,13 +312,10 @@
         document.getElementById("toggleEditBtn").textContent = "修改個人資料";
       }
 
-      // ============================================
-      // 渲染未來的預約狀態 (已確認 + 待確認)
-      // ============================================
+      // 渲染未來的預約狀態
       const bookingContainer = document.getElementById("upcomingBookingsContainer");
       let bookingHtml = "";
       
-      // 合併兩種預約陣列來處理
       const allUpcoming = [];
       if (data.confirmedBookings) allUpcoming.push(...data.confirmedBookings);
       if (data.pendingBookings) allUpcoming.push(...data.pendingBookings);
@@ -325,15 +323,16 @@
       if (allUpcoming.length > 0) {
         allUpcoming.forEach(b => {
           let isConfirmed = b.status === "已確認";
-          let statusHtml = isConfirmed ? `<span class="status-confirmed">✅ 已成功預約</span>` : `<span class="status-pending">⏳ 提交預約中</span>`;
-          let extraInfo = isConfirmed ? `安排師傅：${b.therapist}` : `請等候管理員確認時間`;
+          let statusHtml = isConfirmed ? `<span class="status-confirmed">✅ 已成功預約</span>` : `<span class="status-pending">⏳ 等待預約時間確認</span>`;
+          let extraInfo = isConfirmed ? `安排師傅：${b.therapist}` : `請等候店鋪管理員確認時間`;
+          let boxClass = isConfirmed ? "booking-box confirmed" : "booking-box pending";
           
           bookingHtml += `
-            <div class="booking-box">
+            <div class="${boxClass}">
               <div class="title">${b.time} - ${b.service}</div>
               <div class="detail">${statusHtml} | ${extraInfo}</div>
-              <div style="text-align: right;">
-                <button class="btn-small btn-outline" onclick="changeBookingHandler('${b.time}', '${b.service}', 'modify')">修改時間</button>
+              <div style="text-align: right; padding-right: 8px;">
+                <button class="btn-small btn-outline" onclick="changeBookingHandler('${b.time}', '${b.service}', 'modify')">變更時間</button>
                 <button class="btn-small btn-secondary" onclick="changeBookingHandler('${b.time}', '${b.service}', 'cancel')" style="margin-left: 5px;">取消</button>
               </div>
             </div>
@@ -351,7 +350,7 @@
         data.history.forEach(record => {
           historyContainer.innerHTML += `
             <div class="record-item">
-              <strong>🗓️ ${record.date}</strong> | ${record.therapist}<br>
+              <strong>🗓️ ${record.date}</strong> | 師傅：${record.therapist}<br>
               <span style="color: var(--text-muted); font-size: 14px;">方案：${record.serviceType}</span>
             </div>
           `;
@@ -361,20 +360,47 @@
       }
     }
 
-    // 【新增】處理客人點擊修改/取消預約的邏輯
+    // 【優化】使用 SweetAlert2 增強質感提示
     function changeBookingHandler(timeStr, serviceStr, actionType) {
-      let userMessage = "";
       if (actionType === "modify") {
-        userMessage = prompt(`您想要修改 [${serviceStr}] 的時間。\n請輸入您期望的新時間 (例如 9/5 下午兩點)：`);
-        if (userMessage === null) return; // 客人按了取消
-        if (userMessage.trim() === "") { alert("您必須輸入期望的新時間喔！"); return; }
+        Swal.fire({
+          title: '修改預約時間',
+          text: `原預約：${timeStr} (${serviceStr})`,
+          input: 'text',
+          inputPlaceholder: '請輸入期望的新時間 (例如：9/5 下午2點)',
+          showCancelButton: true,
+          confirmButtonText: '送出要求',
+          cancelButtonText: '返回',
+          confirmButtonColor: '#B9936C'
+        }).then((result) => {
+          if (result.isConfirmed) {
+            if(!result.value.trim()){
+              Swal.fire('提示', '請填寫期望的新時間喔！', 'warning');
+              return;
+            }
+            sendChangeRequest(timeStr, serviceStr, actionType, result.value);
+          }
+        });
       } else {
-        let confirmCancel = confirm(`確定要取消 [${timeStr}] 的 [${serviceStr}] 嗎？`);
-        if (!confirmCancel) return;
-        userMessage = prompt("請簡單描述取消的原因 (選填)：") || "無提供原因";
+        Swal.fire({
+          title: '確認取消預約？',
+          text: `原預約：${timeStr} (${serviceStr})`,
+          icon: 'warning',
+          input: 'text',
+          inputPlaceholder: '可簡單描述取消原因 (選填)',
+          showCancelButton: true,
+          confirmButtonText: '確定取消',
+          cancelButtonText: '返回',
+          confirmButtonColor: '#d33'
+        }).then((result) => {
+          if (result.isConfirmed) {
+            sendChangeRequest(timeStr, serviceStr, actionType, result.value || "無提供原因");
+          }
+        });
       }
+    }
 
-      // 顯示發送中，並發送 API 請求
+    function sendChangeRequest(timeStr, serviceStr, actionType, userMessage) {
       document.getElementById("loadingMsg").classList.remove("hidden");
       document.getElementById("mainSystem").classList.add("hidden");
 
@@ -391,12 +417,11 @@
       })
       .then(res => res.json())
       .then(data => {
-        // 重新載入儀表板
         getUserDataAndLogin(); 
-        alert("已通知管理人員，請稍待回覆😌");
+        Swal.fire('已通知', '已將您的要求傳達給管理人員，請稍待回覆😌', 'success');
       })
       .catch(err => {
-        alert("網路錯誤，請稍後再試。");
+        Swal.fire('錯誤', '網路錯誤，請稍後再試。', 'error');
         getUserDataAndLogin();
       });
     }
@@ -420,7 +445,7 @@
       const birthday = document.getElementById("editBirthday").value;
       const gender = document.getElementById("editGender").value;
 
-      if (!name.trim()) { alert("請輸入您的姓名！"); return; }
+      if (!name.trim()) { Swal.fire('提示', '請輸入您的姓名！', 'warning'); return; }
 
       fetch(GAS_URL, {
         method: "POST",
@@ -432,10 +457,10 @@
       .then(res => res.json())
       .then(data => {
         if (data.status === "success") {
-          alert("資料更新成功！");
+          Swal.fire('成功', '資料更新成功！', 'success');
           renderDashboard(data); 
         } else {
-          alert("錯誤：" + data.message);
+          Swal.fire('錯誤', data.message, 'error');
         }
       });
     }
@@ -450,21 +475,28 @@
       const serviceType = document.getElementById("serviceType").value;
       const remarks = document.getElementById("bookingRemarks").value; 
 
-      if (!date1 || !time1) { alert("期望時間 1 為必填！請選擇日期與時間。"); return; }
+      if (!date1 || !time1) { Swal.fire('提示', '期望時間 1 為必填！請選擇日期與時間。', 'warning'); return; }
 
       if (!validateBookingTime(date1, time1)) {
-        alert("期望時間 1 無效！預約時間必須至少在 1 小時之後喔！"); return;
+        Swal.fire('提示', '期望時間 1 無效！預約時間必須至少在 1 小時之後喔！', 'warning'); return;
       }
       if (date2 && time2 && !validateBookingTime(date2, time2)) {
-        alert("期望時間 2 無效！預約時間必須至少在 1 小時之後喔！"); return;
+        Swal.fire('提示', '期望時間 2 無效！預約時間必須至少在 1 小時之後喔！', 'warning'); return;
       }
       if (date3 && time3 && !validateBookingTime(date3, time3)) {
-        alert("期望時間 3 無效！預約時間必須至少在 1 小時之後喔！"); return;
+        Swal.fire('提示', '期望時間 3 無效！預約時間必須至少在 1 小時之後喔！', 'warning'); return;
       }
 
       const fullTime1 = `${date1} ${time1}`;
       const fullTime2 = (date2 && time2) ? `${date2} ${time2}` : "";
       const fullTime3 = (date3 && time3) ? `${date3} ${time3}` : "";
+
+      Swal.fire({
+        title: '處理中...',
+        text: '正在送出您的預約',
+        allowOutsideClick: false,
+        didOpen: () => { Swal.showLoading(); }
+      });
 
       fetch(GAS_URL, {
         method: "POST",
@@ -481,7 +513,7 @@
       .then(res => res.json())
       .then(data => {
         if (data.status === "success") {
-          alert("預約申請已送出！我們會盡快與您聯繫確認。");
+          Swal.fire('申請已送出', '我們會盡快與您聯繫確認您的預約時間。', 'success');
           document.getElementById("date1").value = "";
           document.getElementById("time1").value = "";
           document.getElementById("date2").value = "";
@@ -490,12 +522,10 @@
           document.getElementById("time3").value = "";
           document.getElementById("bookingRemarks").value = ""; 
           
-          // 送出後立刻更新儀表板，讓客人看到「提交預約中」的狀態
           document.getElementById("loadingMsg").classList.remove("hidden");
           document.getElementById("mainSystem").classList.add("hidden");
           getUserDataAndLogin();
-          
-        } else { alert("錯誤：" + data.message); }
+        } else { Swal.fire('錯誤', data.message, 'error'); }
       });
     }
 
