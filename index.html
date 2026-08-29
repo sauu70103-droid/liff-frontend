@@ -158,11 +158,16 @@
       document.getElementById("date1").min = todayString;
       document.getElementById("date2").min = todayString;
       document.getElementById("date3").min = todayString;
+      
       let optionsHtml = '<option value="">時間</option>';
-      for (let h = 10; h <= 21; h++) {
+      // 【修改處】時間限制從 09:00 跑到 16:30
+      for (let h = 9; h <= 16; h++) {
         let hour = h.toString().padStart(2, '0');
         optionsHtml += `<option value="${hour}:00">${hour}:00</option><option value="${hour}:30">${hour}:30</option>`;
       }
+      // 【修改處】手動加入最後一個時段 17:00
+      optionsHtml += `<option value="17:00">17:00</option>`;
+
       document.getElementById("time1").innerHTML = optionsHtml;
       document.getElementById("time2").innerHTML = optionsHtml;
       document.getElementById("time3").innerHTML = optionsHtml;
@@ -276,10 +281,12 @@
     function changeBookingHandler(timeStr, serviceStr, actionType) {
       if (actionType === "modify") {
         let timeOptions = '<option value="">時間</option>';
-        for (let h = 10; h <= 21; h++) {
+        // 【修改處】改期視窗的下拉選單也同步限制 09:00 到 17:00
+        for (let h = 9; h <= 16; h++) {
           let hour = h.toString().padStart(2, '0');
           timeOptions += `<option value="${hour}:00">${hour}:00</option><option value="${hour}:30">${hour}:30</option>`;
         }
+        timeOptions += `<option value="17:00">17:00</option>`;
 
         Swal.fire({
           title: '申請改期',
