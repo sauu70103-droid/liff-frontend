@@ -5,57 +5,39 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>錦葳專屬會員系統</title>
   <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-  <!-- 【優化】導入 SweetAlert2 讓提示視窗更有質感 -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <style>
     :root {
-      --bg-color: #F8F6F1;
-      --card-bg: #FFFFFF;
-      --primary-color: #B9936C;
-      --primary-hover: #9E7A55;
-      --text-main: #4A3B32;
-      --text-muted: #8C7B70;
-      --border-color: #E2D3C5;
-      --secondary-bg: #EFE4DA;
-      --success-color: #4CAF50;
-      --pending-color: #F39C12;
+      --bg-color: #F8F6F1; --card-bg: #FFFFFF; --primary-color: #B9936C; --primary-hover: #9E7A55;
+      --text-main: #4A3B32; --text-muted: #8C7B70; --border-color: #E2D3C5; --secondary-bg: #EFE4DA;
+      --success-color: #4CAF50; --pending-color: #F39C12;
     }
     body { font-family: '微軟正黑體', sans-serif; background-color: var(--bg-color); margin: 0; padding: 15px; color: var(--text-main); }
     .container { max-width: 500px; margin: 0 auto; }
-    
     .logo-container { text-align: center; margin-bottom: 20px; }
     .logo-container img { max-width: 160px; height: auto; }
-
     .card { background: var(--card-bg); border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(139, 111, 88, 0.1); }
     h2, h3 { margin-top: 0; color: var(--text-main); }
     
     input, select, textarea, button { width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 8px; border: 1px solid var(--border-color); box-sizing: border-box; font-size: 16px; color: var(--text-main); background: #faf8f5;}
     input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary-color); }
     textarea { resize: vertical; font-family: inherit; } 
-    
     button { background-color: var(--primary-color); color: white; border: none; cursor: pointer; font-weight: bold; transition: 0.3s; }
     button:hover { background-color: var(--primary-hover); }
-    
     .btn-secondary { background-color: var(--secondary-bg); color: var(--text-main); border: 1px solid var(--primary-color); }
     .btn-secondary:hover { background-color: var(--border-color); }
-    
     .btn-small { padding: 6px 12px; font-size: 13px; margin-bottom: 0; width: auto; display: inline-block; border-radius: 6px; }
     .btn-outline { background: transparent; color: var(--primary-color); border: 1px solid var(--primary-color); }
-
     .badge { display: inline-block; padding: 4px 10px; background: var(--secondary-bg); color: var(--text-main); border-radius: 6px; font-size: 13px; font-weight: bold; border: 1px solid var(--primary-color); }
     .hidden { display: none !important; }
-
     .tabs { display: flex; justify-content: space-between; margin-bottom: 20px; background: var(--card-bg); border-radius: 12px; padding: 5px; box-shadow: 0 2px 5px rgba(139, 111, 88, 0.1); }
     .tab-btn { flex: 1; background: transparent; color: var(--text-muted); border: none; margin-bottom: 0; padding: 10px 0; border-radius: 8px; }
     .tab-btn.active { background: var(--primary-color); color: white; }
-    
     .record-item { border-bottom: 1px solid var(--border-color); padding-bottom: 15px; margin-bottom: 15px; }
     .record-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
-    
     .info-row { display: flex; margin: 10px 0; font-size: 15px; }
     .info-label { width: 80px; color: var(--text-muted); font-weight: bold; }
     .info-value { flex: 1; color: var(--text-main); font-weight: 500; }
-    
     .datetime-group { display: flex; gap: 10px; margin-bottom: 15px; }
     .datetime-group input, .datetime-group select { flex: 1; margin-bottom: 0; }
 
@@ -63,7 +45,6 @@
     .booking-box::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; }
     .booking-box.pending::before { background: var(--pending-color); }
     .booking-box.confirmed::before { background: var(--success-color); }
-    
     .booking-box .title { font-weight: bold; margin-bottom: 5px; font-size: 15px; padding-left: 8px; }
     .booking-box .detail { color: var(--text-muted); font-size: 14px; margin-bottom: 10px; padding-left: 8px; }
     .status-confirmed { color: var(--success-color); font-weight: bold; font-size: 13px; }
@@ -95,57 +76,38 @@
         <button class="tab-btn" id="btnTab3" onclick="switchTab(3)">預約專區</button>
       </div>
 
-      <!-- 分頁 1：基本資料與預約狀態 -->
       <div id="tab1" class="tab-content">
         <div class="card">
           <h2 id="displayName" style="margin-bottom: 5px;">載入中...</h2>
           <p style="margin-top:0;"><span class="badge" id="displayTier">一般會員</span> <span class="badge" id="displayPartner">無特約</span></p>
-          
           <hr style="border: 0; border-top: 1px dashed var(--border-color); margin: 15px 0;">
-          
-          <div class="info-row">
-            <div class="info-label">專屬編號</div>
-            <div class="info-value" id="userJwId" style="color: var(--primary-color);"></div>
-          </div>
-          <div class="info-row">
-            <div class="info-label">手機號碼</div>
-            <div class="info-value" id="displayPhone"></div>
-          </div>
+          <div class="info-row"><div class="info-label">專屬編號</div><div class="info-value" id="userJwId" style="color: var(--primary-color);"></div></div>
+          <div class="info-row"><div class="info-label">手機號碼</div><div class="info-value" id="displayPhone"></div></div>
           <div class="info-row" style="margin-top: 15px;">
             <div class="info-label" style="line-height: 28px;">剩餘堂數</div>
             <div class="info-value"><strong id="displayPackages" style="font-size: 22px; color: #D35400;">0</strong> 堂</div>
           </div>
-          
           <button id="toggleEditBtn" class="btn-secondary" onclick="toggleEditForm()" style="margin-top: 15px; margin-bottom: 15px;">修改個人資料</button>
 
-          <!-- 預約狀態展示區 -->
           <hr style="border: 0; border-top: 1px dashed var(--border-color); margin: 15px 0;">
           <h3 style="margin-bottom: 15px; font-size: 16px;">📝 您未來的預約</h3>
           <div id="upcomingBookingsContainer"></div>
         </div>
 
-        <!-- 修改資料表單 -->
         <div class="card hidden" id="profileEditCard">
           <h3>修改個人資料</h3>
-          <label>姓名</label>
-          <input type="text" id="editName" placeholder="請輸入您的真實姓名">
-          <label>手機號碼</label>
-          <input type="tel" id="editPhone" maxlength="10">
-          <label>生日</label>
-          <input type="date" id="editBirthday">
+          <label>姓名</label><input type="text" id="editName">
+          <label>手機號碼</label><input type="tel" id="editPhone" maxlength="10">
+          <label>生日</label><input type="date" id="editBirthday">
           <label>性別</label>
           <select id="editGender">
-            <option value="">請選擇</option>
-            <option value="男">男</option>
-            <option value="女">女</option>
-            <option value="其他">其他</option>
+            <option value="">請選擇</option><option value="男">男</option><option value="女">女</option><option value="其他">其他</option>
           </select>
           <button onclick="updateProfile()">儲存修改</button>
           <button class="btn-secondary" onclick="toggleEditForm()">取消修改</button>
         </div>
       </div>
 
-      <!-- 分頁 2：歷史紀錄 -->
       <div id="tab2" class="tab-content hidden">
         <div class="card">
           <h3>最近調理紀錄</h3>
@@ -153,7 +115,6 @@
         </div>
       </div>
 
-      <!-- 分頁 3：預約表單 -->
       <div id="tab3" class="tab-content hidden">
         <div class="card">
           <h3>預約調理</h3>
@@ -166,22 +127,13 @@
             <option value="全身全方位深度修復">全身全方位深度修復</option>
           </select>
           <label>期望時間 1 (必填)</label>
-          <div class="datetime-group">
-            <input type="date" id="date1">
-            <select id="time1"></select>
-          </div>
+          <div class="datetime-group"><input type="date" id="date1"><select id="time1"></select></div>
           <label>期望時間 2 (選填)</label>
-          <div class="datetime-group">
-            <input type="date" id="date2">
-            <select id="time2"></select>
-          </div>
+          <div class="datetime-group"><input type="date" id="date2"><select id="time2"></select></div>
           <label>期望時間 3 (選填)</label>
-          <div class="datetime-group">
-            <input type="date" id="date3">
-            <select id="time3"></select>
-          </div>
+          <div class="datetime-group"><input type="date" id="date3"><select id="time3"></select></div>
           <label>狀況描述與備註 (選填)</label>
-          <textarea id="bookingRemarks" rows="3" placeholder="請簡單描述您的狀況，或希望師傅加強調理的部位..."></textarea>
+          <textarea id="bookingRemarks" rows="3" placeholder="請簡單描述狀況..."></textarea>
           <button onclick="submitBooking()">送出預約申請</button>
         </div>
       </div>
@@ -191,91 +143,59 @@
   <script>
     const GAS_URL = "https://script.google.com/macros/s/AKfycbwApGqvuUMuERNtrlEr1NHSKxooH_fD9XF_t1v-iKg_gDJ0kRBqnrKodhjVlIWa-u16sw/exec"; 
     const LIFF_ID = "2011305352-GK5jDrbh"; 
-    
-    let userLineUid = "";
-    let currentJwId = "";
+    let userLineUid = "", currentJwId = "";
 
     window.onload = function() {
       setupBookingInputs();
       liff.init({ liffId: LIFF_ID }).then(() => {
-        if (!liff.isLoggedIn()) {
-          liff.login(); 
-        } else {
-          getUserDataAndLogin();
-        }
-      }).catch(err => {
-        document.getElementById("loadingMsg").innerHTML = "<h3>LIFF 載入失敗，請確認網路連線</h3>";
-      });
+        if (!liff.isLoggedIn()) liff.login(); 
+        else getUserDataAndLogin();
+      }).catch(err => { document.getElementById("loadingMsg").innerHTML = "<h3>LIFF 載入失敗，請確認網路連線</h3>"; });
     };
 
     function setupBookingInputs() {
-      const today = new Date();
-      const todayString = new Date(today.getTime() - (today.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+      const todayString = new Date(new Date().getTime() - (new Date().getTimezoneOffset() * 60000)).toISOString().split('T')[0];
       document.getElementById("date1").min = todayString;
       document.getElementById("date2").min = todayString;
       document.getElementById("date3").min = todayString;
-
       let optionsHtml = '<option value="">時間</option>';
       for (let h = 10; h <= 21; h++) {
         let hour = h.toString().padStart(2, '0');
-        optionsHtml += `<option value="${hour}:00">${hour}:00</option>`;
-        optionsHtml += `<option value="${hour}:30">${hour}:30</option>`;
+        optionsHtml += `<option value="${hour}:00">${hour}:00</option><option value="${hour}:30">${hour}:30</option>`;
       }
       document.getElementById("time1").innerHTML = optionsHtml;
       document.getElementById("time2").innerHTML = optionsHtml;
       document.getElementById("time3").innerHTML = optionsHtml;
     }
 
-    function validateBookingTime(dateVal, timeVal) {
-      if (!dateVal || !timeVal) return true; 
-      const selectedTime = new Date(`${dateVal}T${timeVal}:00`);
-      const oneHourLater = new Date(new Date().getTime() + 60 * 60 * 1000);
-      return selectedTime >= oneHourLater;
-    }
-
     function getUserDataAndLogin() {
       liff.getProfile().then(profile => {
         userLineUid = profile.userId;
-        fetch(GAS_URL, {
-          method: "POST",
-          body: JSON.stringify({ action: "autoLogin", lineUid: userLineUid })
-        })
+        fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: "autoLogin", lineUid: userLineUid }) })
         .then(res => res.json())
         .then(data => {
           document.getElementById("loadingMsg").classList.add("hidden");
-          if (data.status === "success") {
-            renderDashboard(data);
-          } else {
-            document.getElementById("bindSection").classList.remove("hidden");
-          }
+          if (data.status === "success") renderDashboard(data);
+          else document.getElementById("bindSection").classList.remove("hidden");
         }).catch(err => Swal.fire('錯誤', '網路錯誤，請重新開啟。', 'error'));
       });
     }
 
     function bindAccount() {
       const phone = document.getElementById("phoneInput").value.trim();
-      if(phone.length !== 10) { 
-        Swal.fire('提示', '請輸入完整的 10 碼手機號碼！', 'warning'); 
-        return; 
-      }
-      
+      if(phone.length !== 10) { Swal.fire('提示', '請輸入完整的 10 碼手機號碼！', 'warning'); return; }
       document.getElementById("bindSection").classList.add("hidden");
       document.getElementById("loadingMsg").classList.remove("hidden");
       document.getElementById("loadingMsg").innerHTML = "<h3>綁定資料中...</h3>";
 
-      fetch(GAS_URL, {
-        method: "POST",
-        body: JSON.stringify({ action: "bindAccount", lineUid: userLineUid, phone: phone })
-      })
+      fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: "bindAccount", lineUid: userLineUid, phone: phone }) })
       .then(res => res.json())
       .then(data => {
         document.getElementById("loadingMsg").classList.add("hidden");
         if (data.status === "success") {
-          Swal.fire('成功', '綁定成功！歡迎回來', 'success');
-          renderDashboard(data);
+          Swal.fire('成功', '綁定成功！歡迎回來', 'success'); renderDashboard(data);
         } else {
-          Swal.fire('失敗', data.message, 'error');
-          document.getElementById("bindSection").classList.remove("hidden");
+          Swal.fire('失敗', data.message, 'error'); document.getElementById("bindSection").classList.remove("hidden");
         }
       });
     }
@@ -295,11 +215,7 @@
         let d = new Date(data.profile.birthday);
         if(!isNaN(d)) document.getElementById("editBirthday").value = d.toISOString().split('T')[0];
       }
-      if (data.profile.name && data.profile.name.includes("新會員")) {
-        document.getElementById("editName").value = "";
-      } else {
-        document.getElementById("editName").value = data.profile.name || "";
-      }
+      document.getElementById("editName").value = (data.profile.name && data.profile.name.includes("新會員")) ? "" : (data.profile.name || "");
       document.getElementById("editPhone").value = data.profile.phone || "";
       document.getElementById("editGender").value = data.profile.gender || "";
 
@@ -312,10 +228,8 @@
         document.getElementById("toggleEditBtn").textContent = "修改個人資料";
       }
 
-      // 渲染未來的預約狀態
       const bookingContainer = document.getElementById("upcomingBookingsContainer");
       let bookingHtml = "";
-      
       const allUpcoming = [];
       if (data.confirmedBookings) allUpcoming.push(...data.confirmedBookings);
       if (data.pendingBookings) allUpcoming.push(...data.pendingBookings);
@@ -323,8 +237,8 @@
       if (allUpcoming.length > 0) {
         allUpcoming.forEach(b => {
           let isConfirmed = b.status === "已確認";
-          let statusHtml = isConfirmed ? `<span class="status-confirmed">✅ 已成功預約</span>` : `<span class="status-pending">⏳ 等待預約時間確認</span>`;
-          let extraInfo = isConfirmed ? `安排師傅：${b.therapist}` : `請等候店鋪管理員確認時間`;
+          let statusHtml = isConfirmed ? `<span class="status-confirmed">✅ 已成功預約</span>` : `<span class="status-pending">⏳ 等待預約確認中</span>`;
+          let extraInfo = isConfirmed ? `安排師傅：${b.therapist}` : `請等候店鋪回覆確認`;
           let boxClass = isConfirmed ? "booking-box confirmed" : "booking-box pending";
           
           bookingHtml += `
@@ -332,7 +246,7 @@
               <div class="title">${b.time} - ${b.service}</div>
               <div class="detail">${statusHtml} | ${extraInfo}</div>
               <div style="text-align: right; padding-right: 8px;">
-                <button class="btn-small btn-outline" onclick="changeBookingHandler('${b.time}', '${b.service}', 'modify')">變更時間</button>
+                <button class="btn-small btn-outline" onclick="changeBookingHandler('${b.time}', '${b.service}', 'modify')">改期</button>
                 <button class="btn-small btn-secondary" onclick="changeBookingHandler('${b.time}', '${b.service}', 'cancel')" style="margin-left: 5px;">取消</button>
               </div>
             </div>
@@ -343,7 +257,6 @@
       }
       bookingContainer.innerHTML = bookingHtml;
 
-      // 渲染歷史紀錄
       const historyContainer = document.getElementById("historyList");
       historyContainer.innerHTML = ""; 
       if (data.history && data.history.length > 0) {
@@ -360,26 +273,42 @@
       }
     }
 
-    // 【優化】使用 SweetAlert2 增強質感提示
     function changeBookingHandler(timeStr, serviceStr, actionType) {
       if (actionType === "modify") {
+        let timeOptions = '<option value="">時間</option>';
+        for (let h = 10; h <= 21; h++) {
+          let hour = h.toString().padStart(2, '0');
+          timeOptions += `<option value="${hour}:00">${hour}:00</option><option value="${hour}:30">${hour}:30</option>`;
+        }
+
         Swal.fire({
-          title: '修改預約時間',
-          text: `原預約：${timeStr} (${serviceStr})`,
-          input: 'text',
-          inputPlaceholder: '請輸入期望的新時間 (例如：9/5 下午2點)',
+          title: '申請改期',
+          html: `
+            <p style="font-size:14px; color:#8C7B70;">原預約：${timeStr}<br>方案：${serviceStr}</p>
+            <p style="font-size:15px; margin-bottom:5px; text-align:left;">請選擇您期望的新日期與時間：</p>
+            <div style="display:flex; gap:10px;">
+              <input type="date" id="swal-date" class="swal2-input" style="margin:0; width:50%; font-size:15px;">
+              <select id="swal-time" class="swal2-select" style="margin:0; width:50%; display:flex; font-size:15px;">
+                ${timeOptions}
+              </select>
+            </div>
+          `,
           showCancelButton: true,
-          confirmButtonText: '送出要求',
+          confirmButtonText: '送出改期要求',
           cancelButtonText: '返回',
-          confirmButtonColor: '#B9936C'
-        }).then((result) => {
-          if (result.isConfirmed) {
-            if(!result.value.trim()){
-              Swal.fire('提示', '請填寫期望的新時間喔！', 'warning');
-              return;
-            }
-            sendChangeRequest(timeStr, serviceStr, actionType, result.value);
+          confirmButtonColor: '#B9936C',
+          didOpen: () => {
+            const todayString = new Date(new Date().getTime() - (new Date().getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+            document.getElementById('swal-date').min = todayString;
+          },
+          preConfirm: () => {
+            const date = document.getElementById('swal-date').value;
+            const time = document.getElementById('swal-time').value;
+            if (!date || !time) { Swal.showValidationMessage('請完整選擇新的日期與時間喔！'); return false; }
+            return `${date} ${time}`;
           }
+        }).then((result) => {
+          if (result.isConfirmed) { sendChangeRequest(timeStr, serviceStr, actionType, result.value); }
         });
       } else {
         Swal.fire({
@@ -393,9 +322,7 @@
           cancelButtonText: '返回',
           confirmButtonColor: '#d33'
         }).then((result) => {
-          if (result.isConfirmed) {
-            sendChangeRequest(timeStr, serviceStr, actionType, result.value || "無提供原因");
-          }
+          if (result.isConfirmed) { sendChangeRequest(timeStr, serviceStr, actionType, result.value || "無提供原因"); }
         });
       }
     }
@@ -407,35 +334,26 @@
       fetch(GAS_URL, {
         method: "POST",
         body: JSON.stringify({
-          action: "changeBooking", 
-          memberId: currentJwId,
-          bookingTime: timeStr,
-          serviceType: serviceStr,
-          changeType: actionType,
-          userMessage: userMessage
+          action: "changeBooking", memberId: currentJwId, bookingTime: timeStr, serviceType: serviceStr, changeType: actionType, userMessage: userMessage
         })
       })
       .then(res => res.json())
       .then(data => {
         getUserDataAndLogin(); 
-        Swal.fire('已通知', '已將您的要求傳達給管理人員，請稍待回覆😌', 'success');
+        Swal.fire('已送出', '已將您的要求傳達給管理人員，請稍待回覆😌', 'success');
       })
       .catch(err => {
-        Swal.fire('錯誤', '網路錯誤，請稍後再試。', 'error');
-        getUserDataAndLogin();
+        Swal.fire('錯誤', '網路錯誤，請稍後再試。', 'error'); getUserDataAndLogin();
       });
     }
 
     function toggleEditForm() {
       const editCard = document.getElementById("profileEditCard");
       const toggleBtn = document.getElementById("toggleEditBtn");
-      
       if (editCard.classList.contains("hidden")) {
-        editCard.classList.remove("hidden");
-        toggleBtn.textContent = "隱藏修改表單";
+        editCard.classList.remove("hidden"); toggleBtn.textContent = "隱藏修改表單";
       } else {
-        editCard.classList.add("hidden");
-        toggleBtn.textContent = "修改個人資料";
+        editCard.classList.add("hidden"); toggleBtn.textContent = "修改個人資料";
       }
     }
 
@@ -449,77 +367,40 @@
 
       fetch(GAS_URL, {
         method: "POST",
-        body: JSON.stringify({
-          action: "updateProfile", memberId: currentJwId,
-          name: name, phone: phone, birthday: birthday, gender: gender
-        })
+        body: JSON.stringify({ action: "updateProfile", memberId: currentJwId, name: name, phone: phone, birthday: birthday, gender: gender })
       })
       .then(res => res.json())
       .then(data => {
-        if (data.status === "success") {
-          Swal.fire('成功', '資料更新成功！', 'success');
-          renderDashboard(data); 
-        } else {
-          Swal.fire('錯誤', data.message, 'error');
-        }
+        if (data.status === "success") { Swal.fire('成功', '資料更新成功！', 'success'); renderDashboard(data); } 
+        else { Swal.fire('錯誤', data.message, 'error'); }
       });
     }
 
     function submitBooking() {
-      const date1 = document.getElementById("date1").value;
-      const time1 = document.getElementById("time1").value;
-      const date2 = document.getElementById("date2").value;
-      const time2 = document.getElementById("time2").value;
-      const date3 = document.getElementById("date3").value;
-      const time3 = document.getElementById("time3").value;
-      const serviceType = document.getElementById("serviceType").value;
-      const remarks = document.getElementById("bookingRemarks").value; 
+      const date1 = document.getElementById("date1").value, time1 = document.getElementById("time1").value;
+      const date2 = document.getElementById("date2").value, time2 = document.getElementById("time2").value;
+      const date3 = document.getElementById("date3").value, time3 = document.getElementById("time3").value;
+      const serviceType = document.getElementById("serviceType").value, remarks = document.getElementById("bookingRemarks").value; 
 
-      if (!date1 || !time1) { Swal.fire('提示', '期望時間 1 為必填！請選擇日期與時間。', 'warning'); return; }
-
-      if (!validateBookingTime(date1, time1)) {
-        Swal.fire('提示', '期望時間 1 無效！預約時間必須至少在 1 小時之後喔！', 'warning'); return;
-      }
-      if (date2 && time2 && !validateBookingTime(date2, time2)) {
-        Swal.fire('提示', '期望時間 2 無效！預約時間必須至少在 1 小時之後喔！', 'warning'); return;
-      }
-      if (date3 && time3 && !validateBookingTime(date3, time3)) {
-        Swal.fire('提示', '期望時間 3 無效！預約時間必須至少在 1 小時之後喔！', 'warning'); return;
-      }
+      if (!date1 || !time1) { Swal.fire('提示', '期望時間 1 為必填！', 'warning'); return; }
 
       const fullTime1 = `${date1} ${time1}`;
       const fullTime2 = (date2 && time2) ? `${date2} ${time2}` : "";
       const fullTime3 = (date3 && time3) ? `${date3} ${time3}` : "";
 
-      Swal.fire({
-        title: '處理中...',
-        text: '正在送出您的預約',
-        allowOutsideClick: false,
-        didOpen: () => { Swal.showLoading(); }
-      });
+      Swal.fire({ title: '處理中...', text: '正在送出您的預約', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
 
       fetch(GAS_URL, {
         method: "POST",
-        body: JSON.stringify({
-          action: "submitBooking", 
-          memberId: currentJwId,
-          time1: fullTime1, 
-          time2: fullTime2, 
-          time3: fullTime3, 
-          serviceType: serviceType,
-          remarks: remarks 
-        })
+        body: JSON.stringify({ action: "submitBooking", memberId: currentJwId, time1: fullTime1, time2: fullTime2, time3: fullTime3, serviceType: serviceType, remarks: remarks })
       })
       .then(res => res.json())
       .then(data => {
         if (data.status === "success") {
-          Swal.fire('申請已送出', '我們會盡快與您聯繫確認您的預約時間。', 'success');
-          document.getElementById("date1").value = "";
-          document.getElementById("time1").value = "";
-          document.getElementById("date2").value = "";
-          document.getElementById("time2").value = "";
-          document.getElementById("date3").value = "";
-          document.getElementById("time3").value = "";
+          Swal.fire('申請已送出', '我們會盡快確認您的預約時間。', 'success');
+          document.getElementById("date1").value = ""; document.getElementById("time1").value = "";
+          document.getElementById("date2").value = ""; document.getElementById("time2").value = "";
+          document.getElementById("date3").value = ""; document.getElementById("time3").value = "";
           document.getElementById("bookingRemarks").value = ""; 
           
           document.getElementById("loadingMsg").classList.remove("hidden");
