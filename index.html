@@ -48,6 +48,11 @@
     .info-row { display: flex; margin: 10px 0; font-size: 15px; }
     .info-label { width: 80px; color: var(--text-muted); font-weight: bold; }
     .info-value { flex: 1; color: var(--text-main); font-weight: 500; }
+    
+    /* 日期與時間並排顯示的容器 */
+    .datetime-group { display: flex; gap: 10px; margin-bottom: 15px; }
+    .datetime-group input { flex: 1; margin-bottom: 0; }
+    .datetime-group select { flex: 1; margin-bottom: 0; }
   </style>
 </head>
 <body>
@@ -111,7 +116,6 @@
         <div class="card hidden" id="profileEditCard">
           <h3>修改個人資料</h3>
           <label>姓名</label>
-          <!-- 【修改重點 1】加入 placeholder 背景提示文字 -->
           <input type="text" id="editName" placeholder="請輸入您的真實姓名">
           <label>手機號碼</label>
           <input type="tel" id="editPhone" maxlength="10">
@@ -136,6 +140,7 @@
         </div>
       </div>
 
+      <!-- 預約專區升級：拆分日期與時間 -->
       <div id="tab3" class="tab-content hidden">
         <div class="card">
           <h3>預約調理</h3>
@@ -150,11 +155,22 @@
           </select>
           
           <label>期望時間 1 (必填)</label>
-          <input type="datetime-local" id="time1">
+          <div class="datetime-group">
+            <input type="date" id="date1">
+            <select id="time1"></select>
+          </div>
+          
           <label>期望時間 2 (選填)</label>
-          <input type="datetime-local" id="time2">
+          <div class="datetime-group">
+            <input type="date" id="date2">
+            <select id="time2"></select>
+          </div>
+          
           <label>期望時間 3 (選填)</label>
-          <input type="datetime-local" id="time3">
+          <div class="datetime-group">
+            <input type="date" id="date3">
+            <select id="time3"></select>
+          </div>
           
           <label>狀況描述與備註 (選填)</label>
           <textarea id="bookingRemarks" rows="3" placeholder="請簡單描述您的狀況，或希望師傅加強調理的部位..."></textarea>
@@ -174,6 +190,9 @@
     let currentJwId = "";
 
     window.onload = function() {
+      // 初始化時間選單與日期限制
+      setupBookingInputs();
+      
       liff.init({ liffId: LIFF_ID }).then(() => {
         if (!liff.isLoggedIn()) {
           liff.login(); 
@@ -184,6 +203,36 @@
         document.getElementById("loadingMsg").innerHTML = "<h3>LIFF 載入失敗</h3>";
       });
     };
+
+    // 【新增功能】初始化預約日期與時間下拉選單
+    function setupBookingInputs() {
+      // 設定日期最小值為今天
+      const today = new Date();
+      // 因應台灣時區轉換
+      const todayString = new Date(today.getTime() - (today.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+      document.getElementById("date1").min = todayString;
+      document.getElementById("date2").min = todayString;
+      document.getElementById("date3").min = todayString;
+
+      // 產生 10:00 到 21:00 的時間選項
+      let optionsHtml = '<option value="">時間</option>';
+      for (let h = 10; h <= 21; h++) {
+        let hour = h.toString().padStart(2, '0');
+        optionsHtml += `<option value="${hour}:00">${hour}:00</option>`;
+        optionsHtml += `<option value="${hour}:30">${hour}:30</option>`;
+      }
+      document.getElementById("time1").innerHTML = optionsHtml;
+      document.getElementById("time2").innerHTML = optionsHtml;
+      document.getElementById("time3").innerHTML = optionsHtml;
+    }
+
+    // 【新增功能】驗證選擇的時間是否大於現在時間 + 1 小時
+    function validateBookingTime(dateVal, timeVal) {
+      if (!dateVal || !timeVal) return true; // 若沒填寫完整交給後續防呆處理
+      const selectedTime = new Date(`${dateVal}T${timeVal}:00`);
+      const oneHourLater = new Date(new Date().getTime() + 60 * 60 * 1000);
+      return selectedTime >= oneHourLater;
+    }
 
     function getUserDataAndLogin() {
       liff.getProfile().then(profile => {
@@ -252,13 +301,11 @@
       }
       document.getElementById("displayBirthday").textContent = displayBday;
 
-      // 【修改重點 2】判斷姓名是否包含「新會員」，如果是則留空讓 placeholder 顯示
       if (data.profile.name && data.profile.name.includes("新會員")) {
         document.getElementById("editName").value = "";
       } else {
         document.getElementById("editName").value = data.profile.name || "";
       }
-      
       document.getElementById("editPhone").value = data.profile.phone || "";
       document.getElementById("editGender").value = data.profile.gender || "";
 
@@ -311,11 +358,7 @@
       const birthday = document.getElementById("editBirthday").value;
       const gender = document.getElementById("editGender").value;
 
-      // 檢查姓名是否留白
-      if (!name.trim()) {
-        alert("請輸入您的姓名！");
-        return;
-      }
+      if (!name.trim()) { alert("請輸入您的姓名！"); return; }
 
       fetch(GAS_URL, {
         method: "POST",
@@ -336,22 +379,41 @@
     }
 
     function submitBooking() {
+      const date1 = document.getElementById("date1").value;
       const time1 = document.getElementById("time1").value;
+      const date2 = document.getElementById("date2").value;
       const time2 = document.getElementById("time2").value;
+      const date3 = document.getElementById("date3").value;
       const time3 = document.getElementById("time3").value;
       const serviceType = document.getElementById("serviceType").value;
       const remarks = document.getElementById("bookingRemarks").value; 
 
-      if (!time1) { alert("請至少填寫一個期望時間！"); return; }
+      if (!date1 || !time1) { alert("期望時間 1 為必填！請選擇日期與時間。"); return; }
+
+      // 檢查是否符合提前一小時預約的規則
+      if (!validateBookingTime(date1, time1)) {
+        alert("期望時間 1 無效！預約時間必須至少在 1 小時之後喔！"); return;
+      }
+      if (date2 && time2 && !validateBookingTime(date2, time2)) {
+        alert("期望時間 2 無效！預約時間必須至少在 1 小時之後喔！"); return;
+      }
+      if (date3 && time3 && !validateBookingTime(date3, time3)) {
+        alert("期望時間 3 無效！預約時間必須至少在 1 小時之後喔！"); return;
+      }
+
+      // 將日期與時間組合成字串傳給後端
+      const fullTime1 = `${date1} ${time1}`;
+      const fullTime2 = (date2 && time2) ? `${date2} ${time2}` : "";
+      const fullTime3 = (date3 && time3) ? `${date3} ${time3}` : "";
 
       fetch(GAS_URL, {
         method: "POST",
         body: JSON.stringify({
           action: "submitBooking", 
           memberId: currentJwId,
-          time1: time1, 
-          time2: time2, 
-          time3: time3, 
+          time1: fullTime1, 
+          time2: fullTime2, 
+          time3: fullTime3, 
           serviceType: serviceType,
           remarks: remarks 
         })
@@ -359,9 +421,12 @@
       .then(res => res.json())
       .then(data => {
         if (data.status === "success") {
-          alert("預約申請已送出！");
+          alert("預約申請已送出！我們會盡快與您聯繫確認。");
+          document.getElementById("date1").value = "";
           document.getElementById("time1").value = "";
+          document.getElementById("date2").value = "";
           document.getElementById("time2").value = "";
+          document.getElementById("date3").value = "";
           document.getElementById("time3").value = "";
           document.getElementById("bookingRemarks").value = ""; 
         } else { alert("錯誤：" + data.message); }
