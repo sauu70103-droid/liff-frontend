@@ -8,49 +8,206 @@
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <style>
     :root {
-      --bg-color: #F8F6F1; --card-bg: #FFFFFF; --primary-color: #B9936C; --primary-hover: #9E7A55;
-      --text-main: #4A3B32; --text-muted: #8C7B70; --border-color: #E2D3C5; --secondary-bg: #EFE4DA;
-      --green-light: #4CAF50; --blue-light: #3498DB; --yellow-light: #F39C12; --red-light: #E74C3C;
+      --bg-color: #F8F6F1; 
+      --card-bg: #FFFFFF; 
+      --primary-color: #B9936C; 
+      --primary-hover: #9E7A55;
+      --text-main: #4A3B32; 
+      --text-muted: #8C7B70; 
+      --border-color: #E2D3C5; 
+      --secondary-bg: #EFE4DA;
+      --green-light: #4CAF50; 
+      --blue-light: #3498DB; 
+      --yellow-light: #F39C12; 
+      --red-light: #E74C3C;
     }
-    body { font-family: '微軟正黑體', sans-serif; background-color: var(--bg-color); margin: 0; padding: 15px; color: var(--text-main); }
-    .container { max-width: 500px; margin: 0 auto; }
-    .logo-container { text-align: center; margin-bottom: 20px; }
-    .logo-container img { max-width: 160px; height: auto; }
-    .card { background: var(--card-bg); border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(139, 111, 88, 0.1); }
-    h2, h3 { margin-top: 0; color: var(--text-main); }
-    input, select, textarea, button { width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 8px; border: 1px solid var(--border-color); box-sizing: border-box; font-size: 16px; color: var(--text-main); background: #faf8f5;}
-    input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary-color); }
-    textarea { resize: vertical; font-family: inherit; } 
-    button { background-color: var(--primary-color); color: white; border: none; cursor: pointer; font-weight: bold; transition: 0.3s; }
-    button:hover { background-color: var(--primary-hover); }
-    .btn-secondary { background-color: var(--secondary-bg); color: var(--text-main); border: 1px solid var(--primary-color); }
-    .btn-secondary:hover { background-color: var(--border-color); }
-    .btn-small { padding: 6px 12px; font-size: 13px; margin-bottom: 0; width: auto; display: inline-block; border-radius: 6px; }
-    .btn-outline { background: transparent; color: var(--primary-color); border: 1px solid var(--primary-color); }
-    .badge { display: inline-block; padding: 4px 10px; background: var(--secondary-bg); color: var(--text-main); border-radius: 6px; font-size: 13px; font-weight: bold; border: 1px solid var(--primary-color); }
-    .hidden { display: none !important; }
-    .tabs { display: flex; justify-content: space-between; margin-bottom: 20px; background: var(--card-bg); border-radius: 12px; padding: 5px; box-shadow: 0 2px 5px rgba(139, 111, 88, 0.1); }
-    .tab-btn { flex: 1; background: transparent; color: var(--text-muted); border: none; margin-bottom: 0; padding: 10px 0; border-radius: 8px; }
-    .tab-btn.active { background: var(--primary-color); color: white; }
-    .record-item { border-bottom: 1px solid var(--border-color); padding-bottom: 15px; margin-bottom: 15px; }
-    .record-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
-    .info-row { display: flex; margin: 10px 0; font-size: 15px; }
-    .info-label { width: 80px; color: var(--text-muted); font-weight: bold; }
-    .info-value { flex: 1; color: var(--text-main); font-weight: 500; }
-    .datetime-group { display: flex; gap: 10px; margin-bottom: 15px; }
-    .datetime-group input, .datetime-group select { flex: 1; margin-bottom: 0; }
+    body { 
+      font-family: '微軟正黑體', sans-serif; 
+      background-color: var(--bg-color); 
+      margin: 0; 
+      padding: 15px; 
+      color: var(--text-main); 
+    }
+    .container { 
+      max-width: 500px; 
+      margin: 0 auto; 
+    }
+    .logo-container { 
+      text-align: center; 
+      margin-bottom: 20px; 
+    }
+    .logo-container img { 
+      max-width: 160px; 
+      height: auto; 
+    }
+    .card { 
+      background: var(--card-bg); 
+      border-radius: 12px; 
+      padding: 20px; 
+      margin-bottom: 20px; 
+      box-shadow: 0 4px 10px rgba(139, 111, 88, 0.1); 
+    }
+    h2, h3 { 
+      margin-top: 0; 
+      color: var(--text-main); 
+    }
+    input, select, textarea, button { 
+      width: 100%; 
+      padding: 12px; 
+      margin-bottom: 15px; 
+      border-radius: 8px; 
+      border: 1px solid var(--border-color); 
+      box-sizing: border-box; 
+      font-size: 16px; 
+      color: var(--text-main); 
+      background: #faf8f5;
+    }
+    input:focus, select:focus, textarea:focus { 
+      outline: none; 
+      border-color: var(--primary-color); 
+    }
+    textarea { 
+      resize: vertical; 
+      font-family: inherit; 
+    } 
+    button { 
+      background-color: var(--primary-color); 
+      color: white; 
+      border: none; 
+      cursor: pointer; 
+      font-weight: bold; 
+      transition: 0.3s; 
+    }
+    button:hover { 
+      background-color: var(--primary-hover); 
+    }
+    .btn-secondary { 
+      background-color: var(--secondary-bg); 
+      color: var(--text-main); 
+      border: 1px solid var(--primary-color); 
+    }
+    .btn-secondary:hover { 
+      background-color: var(--border-color); 
+    }
+    .btn-small { 
+      padding: 6px 12px; 
+      font-size: 13px; 
+      margin-bottom: 0; 
+      width: auto; 
+      display: inline-block; 
+      border-radius: 6px; 
+    }
+    .btn-outline { 
+      background: transparent; 
+      color: var(--primary-color); 
+      border: 1px solid var(--primary-color); 
+    }
+    .badge { 
+      display: inline-block; 
+      padding: 4px 10px; 
+      background: var(--secondary-bg); 
+      color: var(--text-main); 
+      border-radius: 6px; 
+      font-size: 13px; 
+      font-weight: bold; 
+      border: 1px solid var(--primary-color); 
+    }
+    .hidden { 
+      display: none !important; 
+    }
+    .tabs { 
+      display: flex; 
+      justify-content: space-between; 
+      margin-bottom: 20px; 
+      background: var(--card-bg); 
+      border-radius: 12px; 
+      padding: 5px; 
+      box-shadow: 0 2px 5px rgba(139, 111, 88, 0.1); 
+    }
+    .tab-btn { 
+      flex: 1; 
+      background: transparent; 
+      color: var(--text-muted); 
+      border: none; 
+      margin-bottom: 0; 
+      padding: 10px 0; 
+      border-radius: 8px; 
+    }
+    .tab-btn.active { 
+      background: var(--primary-color); 
+      color: white; 
+    }
+    .record-item { 
+      border-bottom: 1px solid var(--border-color); 
+      padding-bottom: 15px; 
+      margin-bottom: 15px; 
+    }
+    .record-item:last-child { 
+      border-bottom: none; 
+      margin-bottom: 0; 
+      padding-bottom: 0; 
+    }
+    .info-row { 
+      display: flex; 
+      margin: 10px 0; 
+      font-size: 15px; 
+    }
+    .info-label { 
+      width: 80px; 
+      color: var(--text-muted); 
+      font-weight: bold; 
+    }
+    .info-value { 
+      flex: 1; 
+      color: var(--text-main); 
+      font-weight: 500; 
+    }
+    .datetime-group { 
+      display: flex; 
+      gap: 10px; 
+      margin-bottom: 15px; 
+    }
+    .datetime-group input, .datetime-group select { 
+      flex: 1; 
+      margin-bottom: 0; 
+    }
 
     /* 動態燈號樣式 */
-    .booking-box { border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; margin-bottom: 12px; background: #faf8f5; position: relative; overflow: hidden; }
-    .booking-box::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; }
+    .booking-box { 
+      border: 1px solid var(--border-color); 
+      border-radius: 8px; 
+      padding: 12px; 
+      margin-bottom: 12px; 
+      background: #faf8f5; 
+      position: relative; 
+      overflow: hidden; 
+    }
+    .booking-box::before { 
+      content: ""; 
+      position: absolute; 
+      left: 0; 
+      top: 0; 
+      bottom: 0; 
+      width: 4px; 
+    }
     .booking-box.yellow::before { background: var(--yellow-light); }
     .booking-box.green::before { background: var(--green-light); }
     .booking-box.blue::before { background: var(--blue-light); }
     .booking-box.red::before { background: var(--red-light); }
     .booking-box.red { background: #FCF3F2; border-color: #F5C6CB; }
     
-    .booking-box .title { font-weight: bold; margin-bottom: 5px; font-size: 15px; padding-left: 8px; }
-    .booking-box .detail { color: var(--text-muted); font-size: 14px; margin-bottom: 10px; padding-left: 8px; }
+    .booking-box .title { 
+      font-weight: bold; 
+      margin-bottom: 5px; 
+      font-size: 15px; 
+      padding-left: 8px; 
+    }
+    .booking-box .detail { 
+      color: var(--text-muted); 
+      font-size: 14px; 
+      margin-bottom: 10px; 
+      padding-left: 8px; 
+    }
     .status-text.green { color: var(--green-light); font-weight: bold; font-size: 13px; }
     .status-text.blue { color: var(--blue-light); font-weight: bold; font-size: 13px; }
     .status-text.yellow { color: var(--yellow-light); font-weight: bold; font-size: 13px; }
@@ -59,11 +216,19 @@
 </head>
 <body>
   <div class="container">
-    <div class="logo-container"><img src="./logo.png" alt="錦葳"></div>
-    <div id="loadingMsg" class="card" style="text-align:center;"><h3 style="color: var(--text-muted);">連線至系統中，請稍候...</h3></div>
+    <div class="logo-container">
+      <img src="./logo.png" alt="錦葳">
+    </div>
+    
+    <div id="loadingMsg" class="card" style="text-align:center;">
+      <h3 style="color: var(--text-muted);">連線至系統中，請稍候...</h3>
+    </div>
+    
     <div id="bindSection" class="card hidden">
-      <h2>會員身分綁定</h2><p style="color: var(--text-muted);">請輸入您的手機號碼進行驗證。未來開啟將自動登入。</p>
-      <input type="tel" id="phoneInput" placeholder="例：0912345678" maxlength="10"><button onclick="bindAccount()">確認綁定</button>
+      <h2>會員身分綁定</h2>
+      <p style="color: var(--text-muted);">請輸入您的手機號碼進行驗證。未來開啟將自動登入。</p>
+      <input type="tel" id="phoneInput" placeholder="例：0912345678" maxlength="10">
+      <button onclick="bindAccount()">確認綁定</button>
     </div>
 
     <div id="mainSystem" class="hidden">
@@ -76,10 +241,19 @@
       <div id="tab1" class="tab-content">
         <div class="card">
           <h2 id="displayName" style="margin-bottom: 5px;">載入中...</h2>
-          <p style="margin-top:0;"><span class="badge" id="displayTier">一般會員</span> <span class="badge" id="displayPartner">無特約</span></p>
+          <p style="margin-top:0;">
+            <span class="badge" id="displayTier">一般會員</span> 
+            <span class="badge" id="displayPartner">無特約</span>
+          </p>
           <hr style="border: 0; border-top: 1px dashed var(--border-color); margin: 15px 0;">
-          <div class="info-row"><div class="info-label">專屬編號</div><div class="info-value" id="userJwId" style="color: var(--primary-color);"></div></div>
-          <div class="info-row"><div class="info-label">手機號碼</div><div class="info-value" id="displayPhone"></div></div>
+          <div class="info-row">
+            <div class="info-label">專屬編號</div>
+            <div class="info-value" id="userJwId" style="color: var(--primary-color);"></div>
+          </div>
+          <div class="info-row">
+            <div class="info-label">手機號碼</div>
+            <div class="info-value" id="displayPhone"></div>
+          </div>
           <div class="info-row" style="margin-top: 15px;">
             <div class="info-label" style="line-height: 28px;">剩餘堂數</div>
             <div class="info-value"><strong id="displayPackages" style="font-size: 22px; color: #D35400;">0</strong> 堂</div>
@@ -93,18 +267,29 @@
 
         <div class="card hidden" id="profileEditCard">
           <h3>修改個人資料</h3>
-          <label>姓名</label><input type="text" id="editName">
-          <label>手機號碼</label><input type="tel" id="editPhone" maxlength="10">
-          <label>生日</label><input type="date" id="editBirthday">
+          <label>姓名</label>
+          <input type="text" id="editName">
+          <label>手機號碼</label>
+          <input type="tel" id="editPhone" maxlength="10">
+          <label>生日</label>
+          <input type="date" id="editBirthday">
           <label>性別</label>
-          <select id="editGender"><option value="">請選擇</option><option value="男">男</option><option value="女">女</option><option value="其他">其他</option></select>
+          <select id="editGender">
+            <option value="">請選擇</option>
+            <option value="男">男</option>
+            <option value="女">女</option>
+            <option value="其他">其他</option>
+          </select>
           <button onclick="updateProfile()">儲存修改</button>
           <button class="btn-secondary" onclick="toggleEditForm()">取消修改</button>
         </div>
       </div>
 
       <div id="tab2" class="tab-content hidden">
-        <div class="card"><h3>最近調理紀錄</h3><div id="historyList"></div></div>
+        <div class="card">
+          <h3>最近調理紀錄</h3>
+          <div id="historyList"></div>
+        </div>
       </div>
 
       <div id="tab3" class="tab-content hidden">
@@ -112,17 +297,29 @@
           <h3>預約調理</h3>
           <label>方案</label>
           <select id="serviceType">
-            <option value="局部滑罐放鬆">局部滑罐放鬆</option><option value="肩頸背套餐">肩頸背套餐</option>
-            <option value="無痛滑罐放鬆">無痛滑罐放鬆</option><option value="單部位舒緩修復">單部位舒緩修復</option>
+            <option value="局部滑罐放鬆">局部滑罐放鬆</option>
+            <option value="肩頸背套餐">肩頸背套餐</option>
+            <option value="無痛滑罐放鬆">無痛滑罐放鬆</option>
+            <option value="單部位舒緩修復">單部位舒緩修復</option>
             <option value="全身全方位深度修復">全身全方位深度修復</option>
           </select>
           <label>期望時間 1 (必填)</label>
-          <div class="datetime-group"><input type="date" id="date1"><select id="time1"></select></div>
+          <div class="datetime-group">
+            <input type="date" id="date1">
+            <select id="time1"></select>
+          </div>
           <label>期望時間 2 (選填)</label>
-          <div class="datetime-group"><input type="date" id="date2"><select id="time2"></select></div>
+          <div class="datetime-group">
+            <input type="date" id="date2">
+            <select id="time2"></select>
+          </div>
           <label>期望時間 3 (選填)</label>
-          <div class="datetime-group"><input type="date" id="date3"><select id="time3"></select></div>
-          <label>狀況描述與備註 (選填)</label><textarea id="bookingRemarks" rows="3" placeholder="請簡單描述狀況..."></textarea>
+          <div class="datetime-group">
+            <input type="date" id="date3">
+            <select id="time3"></select>
+          </div>
+          <label>狀況描述與備註 (選填)</label>
+          <textarea id="bookingRemarks" rows="3" placeholder="請簡單描述狀況..."></textarea>
           <button onclick="submitBooking()">送出預約申請</button>
         </div>
       </div>
@@ -132,51 +329,86 @@
   <script>
     const GAS_URL = "https://script.google.com/macros/s/AKfycbwApGqvuUMuERNtrlEr1NHSKxooH_fD9XF_t1v-iKg_gDJ0kRBqnrKodhjVlIWa-u16sw/exec"; 
     const LIFF_ID = "2011305352-GK5jDrbh"; 
-    let userLineUid = "", currentJwId = "";
+    let userLineUid = "";
+    let currentJwId = "";
 
     window.onload = function() {
       setupBookingInputs();
       liff.init({ liffId: LIFF_ID }).then(() => {
-        if (!liff.isLoggedIn()) liff.login(); else getUserDataAndLogin();
-      }).catch(err => { document.getElementById("loadingMsg").innerHTML = "<h3>LIFF 載入失敗，請確認網路連線</h3>"; });
+        if (!liff.isLoggedIn()) {
+          liff.login(); 
+        } else {
+          getUserDataAndLogin();
+        }
+      }).catch(err => { 
+        document.getElementById("loadingMsg").innerHTML = "<h3>LIFF 載入失敗，請確認網路連線</h3>"; 
+      });
     };
 
     function setupBookingInputs() {
       const todayString = new Date(new Date().getTime() - (new Date().getTimezoneOffset() * 60000)).toISOString().split('T')[0];
-      document.getElementById("date1").min = todayString; document.getElementById("date2").min = todayString; document.getElementById("date3").min = todayString;
+      document.getElementById("date1").min = todayString; 
+      document.getElementById("date2").min = todayString; 
+      document.getElementById("date3").min = todayString;
+      
       let optionsHtml = '<option value="">時間</option>';
       for (let h = 9; h <= 16; h++) {
         let hour = h.toString().padStart(2, '0');
         optionsHtml += `<option value="${hour}:00">${hour}:00</option><option value="${hour}:30">${hour}:30</option>`;
       }
       optionsHtml += `<option value="17:00">17:00</option>`;
-      document.getElementById("time1").innerHTML = optionsHtml; document.getElementById("time2").innerHTML = optionsHtml; document.getElementById("time3").innerHTML = optionsHtml;
+      
+      document.getElementById("time1").innerHTML = optionsHtml; 
+      document.getElementById("time2").innerHTML = optionsHtml; 
+      document.getElementById("time3").innerHTML = optionsHtml;
     }
 
     function getUserDataAndLogin() {
       liff.getProfile().then(profile => {
         userLineUid = profile.userId;
-        fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: "autoLogin", lineUid: userLineUid }) })
+        fetch(GAS_URL, { 
+          method: "POST", 
+          body: JSON.stringify({ action: "autoLogin", lineUid: userLineUid }) 
+        })
         .then(res => res.json())
         .then(data => {
           document.getElementById("loadingMsg").classList.add("hidden");
-          if (data.status === "success") renderDashboard(data); else document.getElementById("bindSection").classList.remove("hidden");
-        }).catch(err => Swal.fire('錯誤', '網路錯誤，請重新開啟。', 'error'));
+          if (data.status === "success") {
+            renderDashboard(data); 
+          } else {
+            document.getElementById("bindSection").classList.remove("hidden");
+          }
+        }).catch(err => {
+          Swal.fire('錯誤', '網路錯誤，請重新開啟。', 'error');
+        });
       });
     }
 
     function bindAccount() {
       const phone = document.getElementById("phoneInput").value.trim();
-      if(phone.length !== 10) { Swal.fire('提示', '請輸入完整的 10 碼手機號碼！', 'warning'); return; }
-      document.getElementById("bindSection").classList.add("hidden"); document.getElementById("loadingMsg").classList.remove("hidden");
+      if(phone.length !== 10) { 
+        Swal.fire('提示', '請輸入完整的 10 碼手機號碼！', 'warning'); 
+        return; 
+      }
+      
+      document.getElementById("bindSection").classList.add("hidden"); 
+      document.getElementById("loadingMsg").classList.remove("hidden");
       document.getElementById("loadingMsg").innerHTML = "<h3>綁定資料中...</h3>";
 
-      fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: "bindAccount", lineUid: userLineUid, phone: phone }) })
+      fetch(GAS_URL, { 
+        method: "POST", 
+        body: JSON.stringify({ action: "bindAccount", lineUid: userLineUid, phone: phone }) 
+      })
       .then(res => res.json())
       .then(data => {
         document.getElementById("loadingMsg").classList.add("hidden");
-        if (data.status === "success") { Swal.fire('成功', '綁定成功！歡迎回來', 'success'); renderDashboard(data); } 
-        else { Swal.fire('失敗', data.message, 'error'); document.getElementById("bindSection").classList.remove("hidden"); }
+        if (data.status === "success") { 
+          Swal.fire('成功', '綁定成功！歡迎回來', 'success'); 
+          renderDashboard(data); 
+        } else { 
+          Swal.fire('失敗', data.message, 'error'); 
+          document.getElementById("bindSection").classList.remove("hidden"); 
+        }
       });
     }
 
@@ -192,34 +424,45 @@
       document.getElementById("displayPhone").textContent = data.profile.phone || "尚未填寫";
       
       if(data.profile.birthday) {
-        let d = new Date(data.profile.birthday); if(!isNaN(d)) document.getElementById("editBirthday").value = d.toISOString().split('T')[0];
+        let d = new Date(data.profile.birthday); 
+        if(!isNaN(d)) {
+          document.getElementById("editBirthday").value = d.toISOString().split('T')[0];
+        }
       }
+      
       document.getElementById("editName").value = (data.profile.name && data.profile.name.includes("新會員")) ? "" : (data.profile.name || "");
       document.getElementById("editPhone").value = data.profile.phone || "";
       document.getElementById("editGender").value = data.profile.gender || "";
 
       if (!data.profile.phone || !data.profile.birthday || !data.profile.gender || data.profile.name.includes("新會員")) {
-        document.getElementById("profileEditCard").classList.remove("hidden"); document.getElementById("toggleEditBtn").textContent = "隱藏修改表單";
+        document.getElementById("profileEditCard").classList.remove("hidden"); 
+        document.getElementById("toggleEditBtn").textContent = "隱藏修改表單";
       } else {
-        document.getElementById("profileEditCard").classList.add("hidden"); document.getElementById("toggleEditBtn").textContent = "修改個人資料";
+        document.getElementById("profileEditCard").classList.add("hidden"); 
+        document.getElementById("toggleEditBtn").textContent = "修改個人資料";
       }
 
       const bookingContainer = document.getElementById("upcomingBookingsContainer");
       let bookingHtml = "";
       const allUpcoming = [];
+      
       if (data.confirmedBookings) allUpcoming.push(...data.confirmedBookings);
       if (data.pendingBookings) allUpcoming.push(...data.pendingBookings);
       if (data.cancelledBookings) allUpcoming.push(...data.cancelledBookings); 
       
       if (allUpcoming.length > 0) {
         allUpcoming.forEach(b => {
-          let lightColor = b.light; // green, blue, yellow, red
+          let lightColor = b.light; 
           let statusHtml = `<span class="status-text ${lightColor}">${getIcon(lightColor)} ${b.status}</span>`;
           
           let extraInfo = "";
-          if (lightColor === "green" || lightColor === "blue") extraInfo = `安排師傅：${b.therapist}`;
-          else if (lightColor === "yellow") extraInfo = `請等候店鋪回覆確認`;
-          else if (lightColor === "red") extraInfo = `此時段無空檔，請重新預約或洽客服`;
+          if (lightColor === "green" || lightColor === "blue") {
+            extraInfo = `安排師傅：${b.therapist}`;
+          } else if (lightColor === "yellow") {
+            extraInfo = `請等候店鋪回覆確認`;
+          } else if (lightColor === "red") {
+            extraInfo = `此時段無空檔，請重新預約或洽客服`;
+          }
 
           bookingHtml += `
             <div class="booking-box ${lightColor}">
@@ -240,15 +483,26 @@
 
       const historyContainer = document.getElementById("historyList");
       historyContainer.innerHTML = ""; 
+      
       if (data.history && data.history.length > 0) {
         data.history.forEach(record => {
-          historyContainer.innerHTML += `<div class="record-item"><strong>🗓️ ${record.date}</strong> | 師傅：${record.therapist}<br><span style="color: var(--text-muted); font-size: 14px;">方案：${record.serviceType}</span></div>`;
+          historyContainer.innerHTML += `
+            <div class="record-item">
+              <strong>🗓️ ${record.date}</strong> | 師傅：${record.therapist}<br>
+              <span style="color: var(--text-muted); font-size: 14px;">方案：${record.serviceType}</span>
+            </div>
+          `;
         });
-      } else { historyContainer.innerHTML = "<p style='color: var(--text-muted);'>尚無調理紀錄。</p>"; }
+      } else { 
+        historyContainer.innerHTML = "<p style='color: var(--text-muted);'>尚無調理紀錄。</p>"; 
+      }
     }
 
     function getIcon(light) {
-      if(light === 'green') return '✅'; if(light === 'blue') return '🔵'; if(light === 'red') return '❌'; return '⏳';
+      if(light === 'green') return '✅'; 
+      if(light === 'blue') return '🔵'; 
+      if(light === 'red') return '❌'; 
+      return '⏳';
     }
 
     function changeBookingHandler(timeStr, serviceStr, actionType) {
@@ -262,72 +516,193 @@
 
         Swal.fire({
           title: '申請改期',
-          html: `<p style="font-size:14px; color:#8C7B70;">原預約：${timeStr}<br>方案：${serviceStr}</p><p style="font-size:15px; margin-bottom:5px; text-align:left;">請選擇您期望的新日期與時間：</p>
-            <div style="display:flex; gap:10px;"><input type="date" id="swal-date" class="swal2-input" style="margin:0; width:50%; font-size:15px;"><select id="swal-time" class="swal2-select" style="margin:0; width:50%; display:flex; font-size:15px;">${timeOptions}</select></div>`,
-          showCancelButton: true, confirmButtonText: '送出改期要求', cancelButtonText: '返回', confirmButtonColor: '#B9936C',
-          didOpen: () => { document.getElementById('swal-date').min = new Date(new Date().getTime() - (new Date().getTimezoneOffset() * 60000)).toISOString().split('T')[0]; },
+          html: `
+            <p style="font-size:14px; color:#8C7B70;">原預約：${timeStr}<br>方案：${serviceStr}</p>
+            <p style="font-size:15px; margin-bottom:5px; text-align:left;">請選擇您期望的新日期與時間：</p>
+            <div style="display:flex; gap:10px;">
+              <input type="date" id="swal-date" class="swal2-input" style="margin:0; width:50%; font-size:15px;">
+              <select id="swal-time" class="swal2-select" style="margin:0; width:50%; display:flex; font-size:15px;">
+                ${timeOptions}
+              </select>
+            </div>
+          `,
+          showCancelButton: true, 
+          confirmButtonText: '送出改期要求', 
+          cancelButtonText: '返回', 
+          confirmButtonColor: '#B9936C',
+          didOpen: () => { 
+            document.getElementById('swal-date').min = new Date(new Date().getTime() - (new Date().getTimezoneOffset() * 60000)).toISOString().split('T')[0]; 
+          },
           preConfirm: () => {
-            const date = document.getElementById('swal-date').value, time = document.getElementById('swal-time').value;
-            if (!date || !time) { Swal.showValidationMessage('請完整選擇新的日期與時間喔！'); return false; }
+            const date = document.getElementById('swal-date').value;
+            const time = document.getElementById('swal-time').value;
+            if (!date || !time) { 
+              Swal.showValidationMessage('請完整選擇新的日期與時間喔！'); 
+              return false; 
+            }
             return `${date} ${time}`;
           }
-        }).then((result) => { if (result.isConfirmed) { sendChangeRequest(timeStr, serviceStr, actionType, result.value); } });
+        }).then((result) => { 
+          if (result.isConfirmed) { 
+            sendChangeRequest(timeStr, serviceStr, actionType, result.value); 
+          } 
+        });
       } else {
         Swal.fire({
-          title: '確認取消預約？', text: `原預約：${timeStr} (${serviceStr})`, icon: 'warning', input: 'text', inputPlaceholder: '可簡單描述取消原因 (選填)',
-          showCancelButton: true, confirmButtonText: '確定取消', cancelButtonText: '返回', confirmButtonColor: '#d33'
-        }).then((result) => { if (result.isConfirmed) { sendChangeRequest(timeStr, serviceStr, actionType, result.value || "無提供原因"); } });
+          title: '確認取消預約？', 
+          text: `原預約：${timeStr} (${serviceStr})`, 
+          icon: 'warning', 
+          input: 'text', 
+          inputPlaceholder: '可簡單描述取消原因 (選填)',
+          showCancelButton: true, 
+          confirmButtonText: '確定取消', 
+          cancelButtonText: '返回', 
+          confirmButtonColor: '#d33'
+        }).then((result) => { 
+          if (result.isConfirmed) { 
+            sendChangeRequest(timeStr, serviceStr, actionType, result.value || "無提供原因"); 
+          } 
+        });
       }
     }
 
     function sendChangeRequest(timeStr, serviceStr, actionType, userMessage) {
-      document.getElementById("loadingMsg").classList.remove("hidden"); document.getElementById("mainSystem").classList.add("hidden");
-      fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: "changeBooking", memberId: currentJwId, bookingTime: timeStr, serviceType: serviceStr, changeType: actionType, userMessage: userMessage }) })
+      document.getElementById("loadingMsg").classList.remove("hidden"); 
+      document.getElementById("mainSystem").classList.add("hidden");
+      
+      fetch(GAS_URL, { 
+        method: "POST", 
+        body: JSON.stringify({ 
+          action: "changeBooking", 
+          memberId: currentJwId, 
+          bookingTime: timeStr, 
+          serviceType: serviceStr, 
+          changeType: actionType, 
+          userMessage: userMessage 
+        }) 
+      })
       .then(res => res.json())
-      .then(data => { getUserDataAndLogin(); Swal.fire('已送出', '系統已同步更新您的需求，請稍待店務人員回覆😌', 'success'); })
-      .catch(err => { Swal.fire('錯誤', '網路錯誤，請稍後再試。', 'error'); getUserDataAndLogin(); });
+      .then(data => { 
+        getUserDataAndLogin(); 
+        Swal.fire('已送出', '系統已同步更新您的需求，請稍待店務人員回覆😌', 'success'); 
+      })
+      .catch(err => { 
+        Swal.fire('錯誤', '網路錯誤，請稍後再試。', 'error'); 
+        getUserDataAndLogin(); 
+      });
     }
 
     function toggleEditForm() {
-      const editCard = document.getElementById("profileEditCard"), toggleBtn = document.getElementById("toggleEditBtn");
-      if (editCard.classList.contains("hidden")) { editCard.classList.remove("hidden"); toggleBtn.textContent = "隱藏修改表單"; } 
-      else { editCard.classList.add("hidden"); toggleBtn.textContent = "修改個人資料"; }
+      const editCard = document.getElementById("profileEditCard");
+      const toggleBtn = document.getElementById("toggleEditBtn");
+      
+      if (editCard.classList.contains("hidden")) { 
+        editCard.classList.remove("hidden"); 
+        toggleBtn.textContent = "隱藏修改表單"; 
+      } else { 
+        editCard.classList.add("hidden"); 
+        toggleBtn.textContent = "修改個人資料"; 
+      }
     }
 
     function updateProfile() {
-      const name = document.getElementById("editName").value, phone = document.getElementById("editPhone").value;
-      const birthday = document.getElementById("editBirthday").value, gender = document.getElementById("editGender").value;
-      if (!name.trim()) { Swal.fire('提示', '請輸入您的姓名！', 'warning'); return; }
-      fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: "updateProfile", memberId: currentJwId, name: name, phone: phone, birthday: birthday, gender: gender }) })
+      const name = document.getElementById("editName").value;
+      const phone = document.getElementById("editPhone").value;
+      const birthday = document.getElementById("editBirthday").value;
+      const gender = document.getElementById("editGender").value;
+      
+      if (!name.trim()) { 
+        Swal.fire('提示', '請輸入您的姓名！', 'warning'); 
+        return; 
+      }
+      
+      fetch(GAS_URL, { 
+        method: "POST", 
+        body: JSON.stringify({ 
+          action: "updateProfile", 
+          memberId: currentJwId, 
+          name: name, 
+          phone: phone, 
+          birthday: birthday, 
+          gender: gender 
+        }) 
+      })
       .then(res => res.json())
-      .then(data => { if (data.status === "success") { Swal.fire('成功', '資料更新成功！', 'success'); renderDashboard(data); } else { Swal.fire('錯誤', data.message, 'error'); } });
+      .then(data => { 
+        if (data.status === "success") { 
+          Swal.fire('成功', '資料更新成功！', 'success'); 
+          renderDashboard(data); 
+        } else { 
+          Swal.fire('錯誤', data.message, 'error'); 
+        } 
+      });
     }
 
     function submitBooking() {
-      const date1 = document.getElementById("date1").value, time1 = document.getElementById("time1").value;
-      const date2 = document.getElementById("date2").value, time2 = document.getElementById("time2").value;
-      const date3 = document.getElementById("date3").value, time3 = document.getElementById("time3").value;
-      const serviceType = document.getElementById("serviceType").value, remarks = document.getElementById("bookingRemarks").value; 
-      if (!date1 || !time1) { Swal.fire('提示', '期望時間 1 為必填！', 'warning'); return; }
+      const date1 = document.getElementById("date1").value;
+      const time1 = document.getElementById("time1").value;
+      const date2 = document.getElementById("date2").value;
+      const time2 = document.getElementById("time2").value;
+      const date3 = document.getElementById("date3").value;
+      const time3 = document.getElementById("time3").value;
+      const serviceType = document.getElementById("serviceType").value;
+      const remarks = document.getElementById("bookingRemarks").value; 
+      
+      if (!date1 || !time1) { 
+        Swal.fire('提示', '期望時間 1 為必填！', 'warning'); 
+        return; 
+      }
 
-      const fullTime1 = `${date1} ${time1}`, fullTime2 = (date2 && time2) ? `${date2} ${time2}` : "", fullTime3 = (date3 && time3) ? `${date3} ${time3}` : "";
-      Swal.fire({ title: '處理中...', text: '正在送出您的預約', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+      const fullTime1 = `${date1} ${time1}`;
+      const fullTime2 = (date2 && time2) ? `${date2} ${time2}` : "";
+      const fullTime3 = (date3 && time3) ? `${date3} ${time3}` : "";
+      
+      Swal.fire({ 
+        title: '處理中...', 
+        text: '正在送出您的預約', 
+        allowOutsideClick: false, 
+        didOpen: () => { Swal.showLoading(); } 
+      });
 
-      fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: "submitBooking", memberId: currentJwId, time1: fullTime1, time2: fullTime2, time3: fullTime3, serviceType: serviceType, remarks: remarks }) })
+      fetch(GAS_URL, { 
+        method: "POST", 
+        body: JSON.stringify({ 
+          action: "submitBooking", 
+          memberId: currentJwId, 
+          time1: fullTime1, 
+          time2: fullTime2, 
+          time3: fullTime3, 
+          serviceType: serviceType, 
+          remarks: remarks 
+        }) 
+      })
       .then(res => res.json())
       .then(data => {
         if (data.status === "success") {
           Swal.fire('申請已送出', '我們會盡快確認您的預約時間。', 'success');
-          document.getElementById("date1").value = ""; document.getElementById("time1").value = ""; document.getElementById("date2").value = ""; document.getElementById("time2").value = ""; document.getElementById("date3").value = ""; document.getElementById("time3").value = ""; document.getElementById("bookingRemarks").value = ""; 
-          document.getElementById("loadingMsg").classList.remove("hidden"); document.getElementById("mainSystem").classList.add("hidden");
+          document.getElementById("date1").value = ""; 
+          document.getElementById("time1").value = ""; 
+          document.getElementById("date2").value = ""; 
+          document.getElementById("time2").value = ""; 
+          document.getElementById("date3").value = ""; 
+          document.getElementById("time3").value = ""; 
+          document.getElementById("bookingRemarks").value = ""; 
+          
+          document.getElementById("loadingMsg").classList.remove("hidden"); 
+          document.getElementById("mainSystem").classList.add("hidden");
           getUserDataAndLogin();
-        } else { Swal.fire('錯誤', data.message, 'error'); }
+        } else { 
+          Swal.fire('錯誤', data.message, 'error'); 
+        }
       });
     }
 
     function switchTab(tabIndex) {
-      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden')); document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-      document.getElementById('tab' + tabIndex).classList.remove('hidden'); document.getElementById('btnTab' + tabIndex).classList.add('active');
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden')); 
+      document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+      
+      document.getElementById('tab' + tabIndex).classList.remove('hidden'); 
+      document.getElementById('btnTab' + tabIndex).classList.add('active');
     }
   </script>
 </body>
