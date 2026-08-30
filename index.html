@@ -3,7 +3,6 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- 品牌規範：維持純粹的「錦葳」 -->
   <title>錦葳專屬會員系統</title>
   <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -22,6 +21,7 @@
       --yellow-light: #F39C12; 
       --red-light: #E74C3C;
     }
+    
     body { 
       font-family: '微軟正黑體', sans-serif; 
       background-color: var(--bg-color); 
@@ -29,18 +29,22 @@
       padding: 15px; 
       color: var(--text-main); 
     }
+    
     .container { 
       max-width: 500px; 
       margin: 0 auto; 
     }
+    
     .logo-container { 
       text-align: center; 
       margin-bottom: 20px; 
     }
+    
     .logo-container img { 
       max-width: 160px; 
       height: auto; 
     }
+    
     .card { 
       background: var(--card-bg); 
       border-radius: 12px; 
@@ -48,10 +52,12 @@
       margin-bottom: 20px; 
       box-shadow: 0 4px 10px rgba(139, 111, 88, 0.1); 
     }
+    
     h2, h3 { 
       margin-top: 0; 
       color: var(--text-main); 
     }
+    
     input, select, textarea, button { 
       width: 100%; 
       padding: 12px; 
@@ -63,14 +69,17 @@
       color: var(--text-main); 
       background: #faf8f5;
     }
+    
     input:focus, select:focus, textarea:focus { 
       outline: none; 
       border-color: var(--primary-color); 
     }
+    
     textarea { 
       resize: vertical; 
       font-family: inherit; 
     } 
+    
     button { 
       background-color: var(--primary-color); 
       color: white; 
@@ -79,17 +88,21 @@
       font-weight: bold; 
       transition: 0.3s; 
     }
+    
     button:hover { 
       background-color: var(--primary-hover); 
     }
+    
     .btn-secondary { 
       background-color: var(--secondary-bg); 
       color: var(--text-main); 
       border: 1px solid var(--primary-color); 
     }
+    
     .btn-secondary:hover { 
       background-color: var(--border-color); 
     }
+    
     .btn-small { 
       padding: 6px 12px; 
       font-size: 13px; 
@@ -98,11 +111,13 @@
       display: inline-block; 
       border-radius: 6px; 
     }
+    
     .btn-outline { 
       background: transparent; 
       color: var(--primary-color); 
       border: 1px solid var(--primary-color); 
     }
+    
     .badge { 
       display: inline-block; 
       padding: 4px 10px; 
@@ -113,9 +128,11 @@
       font-weight: bold; 
       border: 1px solid var(--primary-color); 
     }
+    
     .hidden { 
       display: none !important; 
     }
+    
     .tabs { 
       display: flex; 
       justify-content: space-between; 
@@ -125,6 +142,7 @@
       padding: 5px; 
       box-shadow: 0 2px 5px rgba(139, 111, 88, 0.1); 
     }
+    
     .tab-btn { 
       flex: 1; 
       background: transparent; 
@@ -134,46 +152,53 @@
       padding: 10px 0; 
       border-radius: 8px; 
     }
+    
     .tab-btn.active { 
       background: var(--primary-color); 
       color: white; 
     }
+    
     .record-item { 
       border-bottom: 1px solid var(--border-color); 
       padding-bottom: 15px; 
       margin-bottom: 15px; 
     }
+    
     .record-item:last-child { 
       border-bottom: none; 
       margin-bottom: 0; 
       padding-bottom: 0; 
     }
+    
     .info-row { 
       display: flex; 
       margin: 10px 0; 
       font-size: 15px; 
     }
+    
     .info-label { 
       width: 80px; 
       color: var(--text-muted); 
       font-weight: bold; 
     }
+    
     .info-value { 
       flex: 1; 
       color: var(--text-main); 
       font-weight: 500; 
     }
+    
     .datetime-group { 
       display: flex; 
       gap: 10px; 
       margin-bottom: 15px; 
     }
+    
     .datetime-group input, .datetime-group select { 
       flex: 1; 
       margin-bottom: 0; 
     }
 
-    /* 動態燈號樣式 */
     .booking-box { 
       border: 1px solid var(--border-color); 
       border-radius: 8px; 
@@ -183,6 +208,7 @@
       position: relative; 
       overflow: hidden; 
     }
+    
     .booking-box::before { 
       content: ""; 
       position: absolute; 
@@ -191,11 +217,27 @@
       bottom: 0; 
       width: 4px; 
     }
-    .booking-box.yellow::before { background: var(--yellow-light); }
-    .booking-box.green::before { background: var(--green-light); }
-    .booking-box.blue::before { background: var(--blue-light); }
-    .booking-box.red::before { background: var(--red-light); }
-    .booking-box.red { background: #FCF3F2; border-color: #F5C6CB; }
+    
+    .booking-box.yellow::before { 
+      background: var(--yellow-light); 
+    }
+    
+    .booking-box.green::before { 
+      background: var(--green-light); 
+    }
+    
+    .booking-box.blue::before { 
+      background: var(--blue-light); 
+    }
+    
+    .booking-box.red::before { 
+      background: var(--red-light); 
+    }
+    
+    .booking-box.red { 
+      background: #FCF3F2; 
+      border-color: #F5C6CB; 
+    }
     
     .booking-box .title { 
       font-weight: bold; 
@@ -203,16 +245,37 @@
       font-size: 15px; 
       padding-left: 8px; 
     }
+    
     .booking-box .detail { 
       color: var(--text-muted); 
       font-size: 14px; 
       margin-bottom: 10px; 
       padding-left: 8px; 
     }
-    .status-text.green { color: var(--green-light); font-weight: bold; font-size: 13px; }
-    .status-text.blue { color: var(--blue-light); font-weight: bold; font-size: 13px; }
-    .status-text.yellow { color: var(--yellow-light); font-weight: bold; font-size: 13px; }
-    .status-text.red { color: var(--red-light); font-weight: bold; font-size: 13px; }
+    
+    .status-text.green { 
+      color: var(--green-light); 
+      font-weight: bold; 
+      font-size: 13px; 
+    }
+    
+    .status-text.blue { 
+      color: var(--blue-light); 
+      font-weight: bold; 
+      font-size: 13px; 
+    }
+    
+    .status-text.yellow { 
+      color: var(--yellow-light); 
+      font-weight: bold; 
+      font-size: 13px; 
+    }
+    
+    .status-text.red { 
+      color: var(--red-light); 
+      font-weight: bold; 
+      font-size: 13px; 
+    }
   </style>
 </head>
 <body>
@@ -270,10 +333,13 @@
           <h3>修改個人資料</h3>
           <label>姓名</label>
           <input type="text" id="editName">
+          
           <label>手機號碼</label>
           <input type="tel" id="editPhone" maxlength="10">
+          
           <label>生日</label>
           <input type="date" id="editBirthday">
+          
           <label>性別</label>
           <select id="editGender">
             <option value="">請選擇</option>
@@ -281,6 +347,7 @@
             <option value="女">女</option>
             <option value="其他">其他</option>
           </select>
+          
           <button onclick="updateProfile()">儲存修改</button>
           <button class="btn-secondary" onclick="toggleEditForm()">取消修改</button>
         </div>
@@ -297,8 +364,6 @@
         <div class="card">
           <h3>預約調理</h3>
           <label>方案</label>
-          
-          <!-- 【本次更新核心】：完全對標店務系統的選項清單 -->
           <select id="serviceType">
             <option value="局部無痛滑罐-10分鐘">局部無痛滑罐-10分鐘</option>
             <option value="肩頸背套餐-15分鐘">肩頸背套餐-15分鐘</option>
@@ -310,25 +375,28 @@
             <option value="專案套票/多堂課程 (純購買)">專案套票/多堂課程 (純購買)</option>
             <option value="其他">其他</option>
           </select>
-          <!-- 選項清單更新完畢 -->
 
           <label>期望時間 1 (必填)</label>
           <div class="datetime-group">
             <input type="date" id="date1">
             <select id="time1"></select>
           </div>
+          
           <label>期望時間 2 (選填)</label>
           <div class="datetime-group">
             <input type="date" id="date2">
             <select id="time2"></select>
           </div>
+          
           <label>期望時間 3 (選填)</label>
           <div class="datetime-group">
             <input type="date" id="date3">
             <select id="time3"></select>
           </div>
+          
           <label>狀況描述與備註 (選填)</label>
           <textarea id="bookingRemarks" rows="3" placeholder="請簡單描述狀況..."></textarea>
+          
           <button onclick="submitBooking()">送出預約申請</button>
         </div>
       </div>
@@ -338,6 +406,7 @@
   <script>
     const GAS_URL = "https://script.google.com/macros/s/AKfycbwApGqvuUMuERNtrlEr1NHSKxooH_fD9XF_t1v-iKg_gDJ0kRBqnrKodhjVlIWa-u16sw/exec"; 
     const LIFF_ID = "2011305352-GK5jDrbh"; 
+    
     let userLineUid = "";
     let currentJwId = "";
 
@@ -356,6 +425,7 @@
 
     function setupBookingInputs() {
       const todayString = new Date(new Date().getTime() - (new Date().getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+      
       document.getElementById("date1").min = todayString; 
       document.getElementById("date2").min = todayString; 
       document.getElementById("date3").min = todayString;
@@ -363,7 +433,8 @@
       let optionsHtml = '<option value="">時間</option>';
       for (let h = 9; h <= 16; h++) {
         let hour = h.toString().padStart(2, '0');
-        optionsHtml += `<option value="${hour}:00">${hour}:00</option><option value="${hour}:30">${hour}:30</option>`;
+        optionsHtml += `<option value="${hour}:00">${hour}:00</option>`;
+        optionsHtml += `<option value="${hour}:30">${hour}:30</option>`;
       }
       optionsHtml += `<option value="17:00">17:00</option>`;
       
@@ -395,6 +466,7 @@
 
     function bindAccount() {
       const phone = document.getElementById("phoneInput").value.trim();
+      
       if(phone.length !== 10) { 
         Swal.fire('提示', '請輸入完整的 10 碼手機號碼！', 'warning'); 
         return; 
@@ -455,9 +527,15 @@
       let bookingHtml = "";
       const allUpcoming = [];
       
-      if (data.confirmedBookings) allUpcoming.push(...data.confirmedBookings);
-      if (data.pendingBookings) allUpcoming.push(...data.pendingBookings);
-      if (data.cancelledBookings) allUpcoming.push(...data.cancelledBookings); 
+      if (data.confirmedBookings) {
+        allUpcoming.push(...data.confirmedBookings);
+      }
+      if (data.pendingBookings) {
+        allUpcoming.push(...data.pendingBookings);
+      }
+      if (data.cancelledBookings) {
+        allUpcoming.push(...data.cancelledBookings); 
+      }
       
       if (allUpcoming.length > 0) {
         allUpcoming.forEach(b => {
@@ -465,10 +543,15 @@
           let statusHtml = `<span class="status-text ${lightColor}">${getIcon(lightColor)} ${b.status}</span>`;
           
           let extraInfo = "";
+          
           if (lightColor === "green" || lightColor === "blue") {
             extraInfo = `安排師傅：${b.therapist}`;
           } else if (lightColor === "yellow") {
-            extraInfo = `請等候店鋪回覆確認`;
+            if (b.status === "處理改期要求中" && b.newTime) {
+              extraInfo = `👉 期望新時間：<strong style="color:var(--yellow-light);">${b.newTime}</strong>`;
+            } else {
+              extraInfo = `請等候店鋪回覆確認`;
+            }
           } else if (lightColor === "red") {
             extraInfo = `此時段無空檔，請重新預約或洽客服`;
           }
@@ -488,6 +571,7 @@
       } else {
         bookingHtml = "<p style='color: var(--text-muted); font-size: 14px;'>目前無未來的預約紀錄。</p>";
       }
+      
       bookingContainer.innerHTML = bookingHtml;
 
       const historyContainer = document.getElementById("historyList");
@@ -519,7 +603,8 @@
         let timeOptions = '<option value="">時間</option>';
         for (let h = 9; h <= 16; h++) {
           let hour = h.toString().padStart(2, '0');
-          timeOptions += `<option value="${hour}:00">${hour}:00</option><option value="${hour}:30">${hour}:30</option>`;
+          timeOptions += `<option value="${hour}:00">${hour}:00</option>`;
+          timeOptions += `<option value="${hour}:30">${hour}:30</option>`;
         }
         timeOptions += `<option value="17:00">17:00</option>`;
 
@@ -670,7 +755,9 @@
         title: '處理中...', 
         text: '正在送出您的預約', 
         allowOutsideClick: false, 
-        didOpen: () => { Swal.showLoading(); } 
+        didOpen: () => { 
+          Swal.showLoading(); 
+        } 
       });
 
       fetch(GAS_URL, { 
@@ -689,6 +776,7 @@
       .then(data => {
         if (data.status === "success") {
           Swal.fire('申請已送出', '我們會盡快確認您的預約時間。', 'success');
+          
           document.getElementById("date1").value = ""; 
           document.getElementById("time1").value = ""; 
           document.getElementById("date2").value = ""; 
@@ -707,8 +795,13 @@
     }
 
     function switchTab(tabIndex) {
-      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden')); 
-      document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(el => {
+        el.classList.add('hidden');
+      }); 
+      
+      document.querySelectorAll('.tab-btn').forEach(el => {
+        el.classList.remove('active');
+      });
       
       document.getElementById('tab' + tabIndex).classList.remove('hidden'); 
       document.getElementById('btnTab' + tabIndex).classList.add('active');
