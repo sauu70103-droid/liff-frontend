@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- 品牌規範：維持純粹的「錦葳」 -->
   <title>錦葳專屬會員系統</title>
   <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -296,13 +297,21 @@
         <div class="card">
           <h3>預約調理</h3>
           <label>方案</label>
+          
+          <!-- 【本次更新核心】：完全對標店務系統的選項清單 -->
           <select id="serviceType">
-            <option value="局部滑罐放鬆">局部滑罐放鬆</option>
-            <option value="肩頸背套餐">肩頸背套餐</option>
-            <option value="無痛滑罐放鬆">無痛滑罐放鬆</option>
+            <option value="局部無痛滑罐-10分鐘">局部無痛滑罐-10分鐘</option>
+            <option value="肩頸背套餐-15分鐘">肩頸背套餐-15分鐘</option>
+            <option value="無痛滑罐放鬆-30分鐘">無痛滑罐放鬆-30分鐘</option>
+            <option value="全方位滑罐放鬆-90分鐘">全方位滑罐放鬆-90分鐘</option>
             <option value="單部位舒緩修復">單部位舒緩修復</option>
-            <option value="全身全方位深度修復">全身全方位深度修復</option>
+            <option value="全身結構養護">全身結構養護</option>
+            <option value="全身全方位深度修復-60分鐘">全身全方位深度修復-60分鐘</option>
+            <option value="專案套票/多堂課程 (純購買)">專案套票/多堂課程 (純購買)</option>
+            <option value="其他">其他</option>
           </select>
+          <!-- 選項清單更新完畢 -->
+
           <label>期望時間 1 (必填)</label>
           <div class="datetime-group">
             <input type="date" id="date1">
