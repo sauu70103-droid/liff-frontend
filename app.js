@@ -96,6 +96,9 @@ function renderDashboard(data) {
   currentJwId = data.profile.id;
   currentMemberName = data.profile.name; 
   
+  // 【重要】將會員資料存入暫存，供報到頁面讀取
+  sessionStorage.setItem("jwProfile", JSON.stringify(data.profile));
+  
   document.getElementById("displayName").textContent = data.profile.name + "，您好！";
   document.getElementById("userJwId").textContent = data.profile.id;
   document.getElementById("displayTier").textContent = data.profile.tier || "一般會員";
@@ -220,14 +223,12 @@ function getIcon(light) {
   return '⏳';
 }
 
-// 【新增】：固定的報到總入口函式
 function goToGeneralCheckIn() {
-  window.location.href = `checkin.html?id=${currentJwId}&name=${currentMemberName}&time=未指定預約&service=一般報到`;
+  window.location.href = `checkin.html?time=未指定預約&service=一般報到`;
 }
 
-// 預約單上的專屬報到入口函式
 function goToCheckIn(timeStr, serviceStr) {
-  window.location.href = `checkin.html?id=${currentJwId}&name=${currentMemberName}&time=${timeStr}&service=${serviceStr}`;
+  window.location.href = `checkin.html?time=${timeStr}&service=${serviceStr}`;
 }
 
 function changeBookingHandler(timeStr, serviceStr, actionType) {
