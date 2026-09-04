@@ -7,24 +7,112 @@
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <link rel="stylesheet" href="style.css">
   <style>
-    .canvas-wrapper { position: relative; width: 100%; height: 400px; border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 10px; overflow: hidden; touch-action: none; background: #fff; }
-    #bodyMapCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: crosshair; }
-    .signature-container { border: 1px solid var(--border-color); border-radius: 8px; background: #fff; margin-bottom: 10px; overflow: hidden; touch-action: none; }
-    #signaturePad { width: 100%; height: 150px; display: block; cursor: crosshair; }
+    /* 簽名板樣式 */
+    .signature-container { 
+      border: 1px solid var(--border-color); 
+      border-radius: 8px; 
+      background: #fff; 
+      margin-bottom: 10px; 
+      overflow: hidden; 
+      touch-action: none; 
+    }
+    #signaturePad { 
+      width: 100%; 
+      height: 150px; 
+      display: block; 
+      cursor: crosshair; 
+    }
+
+    /* 人體圖預覽圖區域 */
+    .preview-container {
+      width: 100%;
+      min-height: 100px;
+      border: 1px dashed var(--primary-color);
+      border-radius: 8px;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--secondary-bg);
+      cursor: pointer;
+      overflow: hidden;
+    }
+    .preview-container img {
+      width: 100%;
+      height: auto;
+      display: none;
+    }
+    .preview-text {
+      color: var(--primary-color);
+      font-weight: bold;
+    }
+
+    /* 彈出式畫板 (Modal) 樣式 */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.85);
+      display: none; /* 預設隱藏 */
+      z-index: 9999;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-content {
+      width: 95%;
+      max-width: 500px;
+      background: #fff;
+      border-radius: 12px;
+      padding: 15px;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+    }
+    .canvas-wrapper { 
+      position: relative; 
+      width: 100%; 
+      height: 400px; 
+      border: 1px solid var(--border-color); 
+      border-radius: 8px; 
+      margin-bottom: 15px; 
+      overflow: hidden; 
+      touch-action: none; 
+      background: #fff; 
+    }
+    #bodyMapCanvas { 
+      position: absolute; 
+      top: 0; 
+      left: 0; 
+      width: 100%; 
+      height: 100%; 
+      cursor: crosshair; 
+    }
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+    }
+    .modal-actions button {
+      margin-bottom: 0;
+    }
   </style>
 </head>
 <body>
   <div class="container">
-    <div class="logo-container"><img src="./logo.png" alt="錦葳"></div>
+    <div class="logo-container">
+      <img src="./logo.png" alt="錦葳">
+    </div>
+    
     <div class="card">
       <h3>自助報到與同意書</h3>
       <p id="bookingInfo" style="font-size:14px; color:var(--text-muted);"></p>
 
-      <label>1. 人體圖註記 (請直接圈選須加強或避開之處)</label>
-      <div class="canvas-wrapper">
-        <canvas id="bodyMapCanvas"></canvas>
+      <label>1. 人體圖註記 (請點擊下方開啟畫板圈選)</label>
+      
+      <!-- 預覽區域 (點擊可開啟畫板) -->
+      <div class="preview-container" id="bodyMapPreviewBtn" onclick="openDrawingModal()">
+        <span class="preview-text" id="previewText">點擊開啟人體圖畫板 ✍️</span>
+        <img id="bodyMapResultImg" alt="人體圖預覽">
       </div>
-      <button class="btn-small btn-secondary" onclick="clearBodyMap()" style="margin-bottom: 15px;">清除重畫</button>
 
       <label>2. 開刀史、意外史、特殊疾病 (防呆：若無請填無)</label>
       <input type="text" id="chkMedicalHistory" placeholder="例如：盲腸炎開刀... (若無請填寫「無」)">
@@ -45,10 +133,23 @@
     </div>
   </div>
 
+  <!-- 彈出式畫板 Modal -->
+  <div class="modal-overlay" id="drawingModal">
+    <div class="modal-content">
+      <h3 style="text-align: center; margin-bottom: 10px;">請圈選須加強或避開之處</h3>
+      <div class="canvas-wrapper">
+        <canvas id="bodyMapCanvas"></canvas>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-secondary" onclick="clearBodyMap()">清除重畫</button>
+        <button onclick="closeAndSaveDrawing()">完成圈選</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     const GAS_URL = "https://script.google.com/macros/s/AKfycbwApGqvuUMuERNtrlEr1NHSKxooH_fD9XF_t1v-iKg_gDJ0kRBqnrKodhjVlIWa-u16sw/exec";
     
-    // 解析 URL 參數
     const urlParams = new URLSearchParams(window.location.search);
     const memberId = urlParams.get('id');
     const memberName = urlParams.get('name');
@@ -57,98 +158,200 @@
 
     document.getElementById('bookingInfo').innerHTML = `會員：${memberName} (${memberId})<br>預約：${bookingTime} - ${serviceType}`;
 
+    let bodyMap, sigPad, bodyImg;
+    let isBodyMapDrawn = false; // 紀錄是否有畫過圖
+
+    window.onload = function() {
+      // 初始化簽名板
+      sigPad = setupCanvas('signaturePad', false);
+      
+      // 預先載入人體圖背景
+      bodyImg = new Image();
+      bodyImg.src = 'body_map.jpg'; // 已修正為單一附檔名
+    };
+
     // --- 畫布共用邏輯 ---
     function setupCanvas(canvasId, isImageBg = false) {
       const canvas = document.getElementById(canvasId);
       const ctx = canvas.getContext('2d');
+      
+      // 設定實際解析度
       const rect = canvas.getBoundingClientRect();
-      canvas.width = rect.width;
-      canvas.height = rect.height;
+      canvas.width = rect.width || 400; // 給予預設值防呆
+      canvas.height = rect.height || (isImageBg ? 400 : 150);
       
       ctx.lineWidth = 3;
       ctx.lineCap = 'round';
-      ctx.strokeStyle = isImageBg ? '#E74C3C' : '#000'; // 人體圖用紅筆，簽名用黑筆
+      ctx.strokeStyle = isImageBg ? '#E74C3C' : '#000'; 
 
       let isDrawing = false;
 
       const getPos = (e) => {
         const r = canvas.getBoundingClientRect();
-        return e.touches ? { x: e.touches[0].clientX - r.left, y: e.touches[0].clientY - r.top } : { x: e.clientX - r.left, y: e.clientY - r.top };
+        if (e.touches) {
+          return { x: e.touches[0].clientX - r.left, y: e.touches[0].clientY - r.top };
+        } else {
+          return { x: e.clientX - r.left, y: e.clientY - r.top };
+        }
       };
 
-      const start = (e) => { e.preventDefault(); isDrawing = true; const p = getPos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); };
-      const draw = (e) => { e.preventDefault(); if (!isDrawing) return; const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); };
-      const stop = () => { isDrawing = false; ctx.closePath(); };
+      const start = (e) => { 
+        e.preventDefault(); 
+        isDrawing = true; 
+        const p = getPos(e); 
+        ctx.beginPath(); 
+        ctx.moveTo(p.x, p.y); 
+      };
+      const draw = (e) => { 
+        e.preventDefault(); 
+        if (!isDrawing) return; 
+        const p = getPos(e); 
+        ctx.lineTo(p.x, p.y); 
+        ctx.stroke(); 
+      };
+      const stop = () => { 
+        isDrawing = false; 
+        ctx.closePath(); 
+      };
 
-      canvas.addEventListener('mousedown', start); canvas.addEventListener('mousemove', draw); canvas.addEventListener('mouseup', stop); canvas.addEventListener('mouseout', stop);
-      canvas.addEventListener('touchstart', start, {passive:false}); canvas.addEventListener('touchmove', draw, {passive:false}); canvas.addEventListener('touchend', stop);
+      canvas.addEventListener('mousedown', start); 
+      canvas.addEventListener('mousemove', draw); 
+      canvas.addEventListener('mouseup', stop); 
+      canvas.addEventListener('mouseout', stop);
+      canvas.addEventListener('touchstart', start, {passive:false}); 
+      canvas.addEventListener('touchmove', draw, {passive:false}); 
+      canvas.addEventListener('touchend', stop);
 
       return { canvas, ctx };
     }
 
-    // 初始化人體圖與簽名板
-    const bodyMap = setupCanvas('bodyMapCanvas', true);
-    const sigPad = setupCanvas('signaturePad', false);
+    // --- 彈出畫板邏輯 ---
+    function openDrawingModal() {
+      const modal = document.getElementById('drawingModal');
+      modal.style.display = 'flex';
+      
+      // 防止背景滾動
+      document.body.style.overflow = 'hidden';
 
-    const bodyImg = new Image();
-    bodyImg.src = 'body_map.jpg.jpg';
-    bodyImg.onload = () => { drawBodyMapBg(); };
+      // 每次打開時，確保畫布大小正確並重繪背景
+      if (!bodyMap) {
+        bodyMap = setupCanvas('bodyMapCanvas', true);
+      }
+      
+      if (!isBodyMapDrawn) {
+        drawBodyMapBg();
+      }
+    }
 
     function drawBodyMapBg() {
-      bodyMap.ctx.clearRect(0, 0, bodyMap.canvas.width, bodyMap.canvas.height);
-      bodyMap.ctx.drawImage(bodyImg, 0, 0, bodyMap.canvas.width, bodyMap.canvas.height);
+      if(bodyMap && bodyImg.complete) {
+        bodyMap.ctx.clearRect(0, 0, bodyMap.canvas.width, bodyMap.canvas.height);
+        bodyMap.ctx.drawImage(bodyImg, 0, 0, bodyMap.canvas.width, bodyMap.canvas.height);
+      }
     }
     
-    function clearBodyMap() { drawBodyMapBg(); }
-    function clearSignature() { sigPad.ctx.clearRect(0, 0, sigPad.canvas.width, sigPad.canvas.height); }
+    function clearBodyMap() { 
+      drawBodyMapBg(); 
+      isBodyMapDrawn = false;
+    }
+    
+    function closeAndSaveDrawing() {
+      const modal = document.getElementById('drawingModal');
+      modal.style.display = 'none';
+      document.body.style.overflow = 'auto'; // 恢復背景滾動
+
+      // 將畫好的內容輸出到主畫面的預覽圖中
+      const previewImg = document.getElementById('bodyMapResultImg');
+      const previewText = document.getElementById('previewText');
+      
+      previewImg.src = bodyMap.canvas.toDataURL('image/jpeg', 0.8);
+      previewImg.style.display = 'block';
+      previewText.style.display = 'none'; // 隱藏文字
+      
+      isBodyMapDrawn = true;
+    }
+
+    function clearSignature() { 
+      sigPad.ctx.clearRect(0, 0, sigPad.canvas.width, sigPad.canvas.height); 
+    }
 
     function isCanvasBlank(canvas) {
       const blank = document.createElement('canvas');
-      blank.width = canvas.width; blank.height = canvas.height;
+      blank.width = canvas.width; 
+      blank.height = canvas.height;
       return canvas.toDataURL() === blank.toDataURL();
     }
 
     // --- 合成與送出 ---
-    function generateRandomCode() { return Math.random().toString(36).substring(2, 10).toUpperCase(); }
+    function generateRandomCode() { 
+      return Math.random().toString(36).substring(2, 10).toUpperCase(); 
+    }
 
     function submitCheckIn() {
       const medHistory = document.getElementById("chkMedicalHistory").value.trim();
       const recentAcc = document.getElementById("chkRecentAccidents").value.trim();
 
-      if (!medHistory || !recentAcc) { Swal.fire('提示', '請確實填寫文字欄位，若無該狀況請填寫「無」喔！', 'warning'); return; }
-      if (isCanvasBlank(sigPad.canvas)) { Swal.fire('提示', '請在下方空白處簽名確認！', 'warning'); return; }
+      if (!isBodyMapDrawn) { 
+        Swal.fire('提示', '請點擊開啟畫板，在人體圖上進行圈選標記！', 'warning'); 
+        return; 
+      }
+      if (!medHistory || !recentAcc) { 
+        Swal.fire('提示', '請確實填寫文字欄位，若無該狀況請填寫「無」喔！', 'warning'); 
+        return; 
+      }
+      if (isCanvasBlank(sigPad.canvas)) { 
+        Swal.fire('提示', '請在下方空白處簽名確認！', 'warning'); 
+        return; 
+      }
 
-      Swal.fire({ title: '生成表單中...', text: '正在加密儲存您的報到資料', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+      Swal.fire({ 
+        title: '生成表單中...', 
+        text: '正在加密儲存您的報到資料', 
+        allowOutsideClick: false, 
+        didOpen: () => { Swal.showLoading(); } 
+      });
 
       const finalCanvas = document.createElement('canvas');
-      finalCanvas.width = 800; finalCanvas.height = 1100;
+      finalCanvas.width = 800; 
+      finalCanvas.height = 1100;
       const fCtx = finalCanvas.getContext('2d');
 
-      fCtx.fillStyle = '#FFFFFF'; fCtx.fillRect(0, 0, finalCanvas.width, finalCanvas.height);
-      fCtx.fillStyle = '#333333'; fCtx.font = 'bold 32px Arial'; fCtx.fillText('錦葳 自助報到與同意書', 40, 60);
+      // 畫白底
+      fCtx.fillStyle = '#FFFFFF'; 
+      fCtx.fillRect(0, 0, finalCanvas.width, finalCanvas.height);
+      
+      fCtx.fillStyle = '#333333'; 
+      fCtx.font = 'bold 32px Arial'; 
+      fCtx.fillText('錦葳 自助報到與同意書', 40, 60);
       
       fCtx.font = '24px Arial';
       fCtx.fillText(`會員編號：${memberId}`, 40, 120);
       fCtx.fillText(`會員姓名：${memberName}`, 40, 160);
       fCtx.fillText(`預約服務：${serviceType}`, 40, 200);
 
-      // 畫上標註過的人體圖
+      // 將 Modal 中畫好的人體圖畫布合成進來
       fCtx.drawImage(bodyMap.canvas, 40, 240, 720, 360);
 
-      fCtx.font = 'bold 20px Arial'; fCtx.fillText('1. 開刀史、意外史、特殊疾病：', 40, 650);
-      fCtx.font = '20px Arial'; fCtx.fillText(medHistory, 60, 690);
+      fCtx.font = 'bold 20px Arial'; 
+      fCtx.fillText('1. 開刀史、意外史、特殊疾病：', 40, 650);
+      fCtx.font = '20px Arial'; 
+      fCtx.fillText(medHistory, 60, 690);
 
-      fCtx.font = 'bold 20px Arial'; fCtx.fillText('2. 近期新增意外撞擊、跌倒情況：', 40, 750);
-      fCtx.font = '20px Arial'; fCtx.fillText(recentAcc, 60, 790);
+      fCtx.font = 'bold 20px Arial'; 
+      fCtx.fillText('2. 近期新增意外撞擊、跌倒情況：', 40, 750);
+      fCtx.font = '20px Arial'; 
+      fCtx.fillText(recentAcc, 60, 790);
 
-      fCtx.font = 'bold 22px Arial'; fCtx.fillText('本人同意並確認上述填寫狀況屬實，特此簽名：', 40, 860);
+      fCtx.font = 'bold 22px Arial'; 
+      fCtx.fillText('本人同意並確認上述填寫狀況屬實，特此簽名：', 40, 860);
       fCtx.drawImage(sigPad.canvas, 40, 880, 400, 150);
 
       const now = new Date();
       const localISOTime = (new Date(now.getTime() - now.getTimezoneOffset() * 60000)).toISOString().slice(0, 19).replace('T', ' ');
       const randomCode = generateRandomCode();
 
-      fCtx.fillStyle = '#999999'; fCtx.font = '16px Arial';
+      fCtx.fillStyle = '#999999'; 
+      fCtx.font = '16px Arial';
       fCtx.fillText(`認證時間：${localISOTime}`, 500, 1020);
       fCtx.fillText(`認證序號：${randomCode}`, 500, 1050);
 
@@ -156,13 +359,23 @@
 
       fetch(GAS_URL, { 
         method: "POST", 
-        body: JSON.stringify({ action: "submitCheckIn", memberId: memberId, memberName: memberName, base64Image: base64Image, randomCode: randomCode }) 
+        body: JSON.stringify({ 
+          action: "submitCheckIn", 
+          memberId: memberId, 
+          memberName: memberName, 
+          base64Image: base64Image, 
+          randomCode: randomCode 
+        }) 
       })
       .then(res => res.json())
       .then(data => {
         if (data.status === "success") {
-          Swal.fire('報到成功', '已為您完成本次報到手續！', 'success').then(() => { window.location.href = 'index.html'; });
-        } else { Swal.fire('錯誤', data.message, 'error'); }
+          Swal.fire('報到成功', '已為您完成本次報到手續！', 'success').then(() => { 
+            window.location.href = 'index.html'; // 報到完畢自動跳回首頁
+          });
+        } else { 
+          Swal.fire('錯誤', data.message, 'error'); 
+        }
       })
       .catch(err => Swal.fire('錯誤', '網路連線異常，請稍後再試。', 'error'));
     }
