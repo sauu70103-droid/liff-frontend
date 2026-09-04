@@ -7,7 +7,6 @@
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <link rel="stylesheet" href="style.css">
   <style>
-    /* 簽名板樣式 */
     .signature-container { 
       border: 1px solid var(--border-color); 
       border-radius: 8px; 
@@ -16,6 +15,7 @@
       overflow: hidden; 
       touch-action: none; 
     }
+    
     #signaturePad { 
       width: 100%; 
       height: 150px; 
@@ -23,7 +23,6 @@
       cursor: crosshair; 
     }
 
-    /* 人體圖預覽圖區域 */
     .preview-container {
       width: 100%;
       min-height: 100px;
@@ -49,7 +48,6 @@
       font-weight: bold;
     }
 
-    /* 彈出式畫板 (Modal) 樣式 */
     .modal-overlay {
       position: fixed;
       top: 0; 
@@ -116,18 +114,33 @@
       <h3>自助報到與同意書</h3>
       <p id="bookingInfo" style="font-size:14px; color:var(--text-muted);"></p>
 
-      <label>1. 人體圖註記 (請點擊下方開啟畫板圈選)</label>
+      <hr style="border: 0; border-top: 1px dashed var(--border-color); margin: 20px 0;">
       
-      <!-- 預覽區域 (點擊可開啟畫板) -->
+      <p style="font-size: 14px; font-weight: bold; color: var(--primary-color);">【基本狀況確認】(若有變更請直接修改)</p>
+      
+      <label>1. 職業 (有助於分析勞損部位)</label>
+      <input type="text" id="chkOccupation" placeholder="例如：辦公室行政、業務、工地主任...">
+      
+      <label>2. 病史與開刀史 (防呆：若無請填無)</label>
+      <input type="text" id="chkMedicalHistory" placeholder="例如：盲腸炎開刀... (若無請填寫「無」)">
+
+      <label>3. 需避開調理的部位 (防呆：若無請填無)</label>
+      <input type="text" id="chkAvoidAreas" placeholder="例如：右膝蓋有傷... (若無請填寫「無」)">
+
+      <hr style="border: 0; border-top: 1px dashed var(--border-color); margin: 20px 0;">
+
+      <p style="font-size: 14px; font-weight: bold; color: var(--primary-color);">【今日調理需求】</p>
+
+      <label>4. 人體圖註記 (請點擊下方開啟畫板，圈出須加強部位)</label>
       <div class="preview-container" id="bodyMapPreviewBtn" onclick="openDrawingModal()">
         <span class="preview-text" id="previewText">點擊開啟人體圖畫板 ✍️</span>
         <img id="bodyMapResultImg" alt="人體圖預覽">
       </div>
 
-      <label>2. 開刀史、意外史、特殊疾病 (防呆：若無請填無)</label>
-      <input type="text" id="chkMedicalHistory" placeholder="例如：盲腸炎開刀... (若無請填寫「無」)">
+      <label>5. 本次欲加強調理的部位 (文字補充)</label>
+      <input type="text" id="chkFocusAreas" placeholder="例如：肩頸緊繃、下背痠痛...">
       
-      <label>3. 近期新增意外撞擊、跌倒情況？ (防呆：若無請填無)</label>
+      <label>6. 近期新增意外撞擊、跌倒情況？ (防呆：若無請填無)</label>
       <input type="text" id="chkRecentAccidents" placeholder="例如：上週跌倒... (若無請填寫「無」)">
       
       <hr style="border: 0; border-top: 1px dashed var(--border-color); margin: 20px 0;">
@@ -143,7 +156,6 @@
     </div>
   </div>
 
-  <!-- 彈出式畫板 Modal -->
   <div class="modal-overlay" id="drawingModal">
     <div class="modal-content">
       <h3 style="text-align: center; margin-bottom: 10px;">請圈選須加強或避開之處</h3>
@@ -160,11 +172,21 @@
   <script>
     const GAS_URL = "https://script.google.com/macros/s/AKfycbwApGqvuUMuERNtrlEr1NHSKxooH_fD9XF_t1v-iKg_gDJ0kRBqnrKodhjVlIWa-u16sw/exec";
     
+    // 解析網址上的預約資訊
     const urlParams = new URLSearchParams(window.location.search);
-    const memberId = urlParams.get('id');
-    const memberName = urlParams.get('name');
     const bookingTime = urlParams.get('time');
     const serviceType = urlParams.get('service');
+    
+    // 從暫存提取會員資料
+    const profileJson = sessionStorage.getItem("jwProfile");
+    if (!profileJson) {
+      alert("讀取會員資料失敗，請重新登入！");
+      window.location.href = "index.html";
+    }
+    
+    const profile = JSON.parse(profileJson);
+    const memberId = profile.id;
+    const memberName = profile.name;
 
     document.getElementById('bookingInfo').innerHTML = `會員：${memberName} (${memberId})<br>預約：${bookingTime} - ${serviceType}`;
 
@@ -174,9 +196,13 @@
     let isBodyMapDrawn = false; 
 
     window.onload = function() {
+      // 自動帶入半永久資料
+      document.getElementById("chkOccupation").value = profile.occupation || "";
+      document.getElementById("chkMedicalHistory").value = profile.medHistory || "";
+      document.getElementById("chkAvoidAreas").value = profile.avoidAreas || "";
+
       sigPad = setupCanvas('signaturePad', false);
       
-      // 注意：圖片名稱已修正為 body_map.jpg
       bodyImg = new Image();
       bodyImg.src = 'body_map.jpg'; 
     };
@@ -205,7 +231,7 @@
       };
 
       const start = (e) => { 
-        e.preventDefault(); // 防止手機滾動
+        e.preventDefault(); 
         isDrawing = true; 
         const p = getPos(e); 
         ctx.beginPath(); 
@@ -295,17 +321,22 @@
     }
 
     function submitCheckIn() {
+      const occupation = document.getElementById("chkOccupation").value.trim();
       const medHistory = document.getElementById("chkMedicalHistory").value.trim();
+      const avoidAreas = document.getElementById("chkAvoidAreas").value.trim();
+      const focusAreas = document.getElementById("chkFocusAreas").value.trim();
       const recentAcc = document.getElementById("chkRecentAccidents").value.trim();
 
       if (!isBodyMapDrawn) { 
         Swal.fire('提示', '請點擊開啟畫板，在人體圖上進行圈選標記！', 'warning'); 
         return; 
       }
-      if (!medHistory || !recentAcc) { 
-        Swal.fire('提示', '請確實填寫文字欄位，若無該狀況請填寫「無」喔！', 'warning'); 
+      
+      if (!medHistory || !recentAcc || !avoidAreas || !focusAreas) { 
+        Swal.fire('提示', '請確實填寫文字欄位，若無該狀況請手動輸入「無」喔！', 'warning'); 
         return; 
       }
+      
       if (isCanvasBlank(sigPad.canvas)) { 
         Swal.fire('提示', '請在下方空白處簽名確認！', 'warning'); 
         return; 
@@ -322,7 +353,7 @@
 
       const finalCanvas = document.createElement('canvas');
       finalCanvas.width = 800; 
-      finalCanvas.height = 1100;
+      finalCanvas.height = 1400;
       const fCtx = finalCanvas.getContext('2d');
 
       fCtx.fillStyle = '#FFFFFF'; 
@@ -337,30 +368,50 @@
       fCtx.fillText(`會員姓名：${memberName}`, 40, 160);
       fCtx.fillText(`預約服務：${serviceType}`, 40, 200);
 
-      fCtx.drawImage(bodyMap.canvas, 40, 240, 720, 360);
+      // 基本資料
+      fCtx.font = 'bold 20px Arial'; 
+      fCtx.fillText('職業：', 40, 250);
+      fCtx.font = '20px Arial'; 
+      fCtx.fillText(occupation, 120, 250);
 
       fCtx.font = 'bold 20px Arial'; 
-      fCtx.fillText('1. 開刀史、意外史、特殊疾病：', 40, 650);
+      fCtx.fillText('病史與開刀史：', 40, 290);
       fCtx.font = '20px Arial'; 
-      fCtx.fillText(medHistory, 60, 690);
+      fCtx.fillText(medHistory, 200, 290);
 
       fCtx.font = 'bold 20px Arial'; 
-      fCtx.fillText('2. 近期新增意外撞擊、跌倒情況：', 40, 750);
+      fCtx.fillText('需避開部位：', 40, 330);
       fCtx.font = '20px Arial'; 
-      fCtx.fillText(recentAcc, 60, 790);
+      fCtx.fillText(avoidAreas, 180, 330);
 
+      // 人體圖
+      fCtx.drawImage(bodyMap.canvas, 40, 360, 720, 360);
+
+      // 當次需求
+      fCtx.font = 'bold 20px Arial'; 
+      fCtx.fillText('本次欲加強部位：', 40, 770);
+      fCtx.font = '20px Arial'; 
+      fCtx.fillText(focusAreas, 220, 770);
+
+      fCtx.font = 'bold 20px Arial'; 
+      fCtx.fillText('近期新增意外撞擊、跌倒情況：', 40, 810);
+      fCtx.font = '20px Arial'; 
+      fCtx.fillText(recentAcc, 340, 810);
+
+      // 簽名
       fCtx.font = 'bold 22px Arial'; 
-      fCtx.fillText('本人同意並確認上述填寫狀況屬實，特此簽名：', 40, 860);
-      fCtx.drawImage(sigPad.canvas, 40, 880, 400, 150);
+      fCtx.fillText('本人同意並確認上述填寫狀況屬實，特此簽名：', 40, 880);
+      fCtx.drawImage(sigPad.canvas, 40, 900, 400, 150);
 
+      // 浮水印
       const now = new Date();
       const localISOTime = (new Date(now.getTime() - now.getTimezoneOffset() * 60000)).toISOString().slice(0, 19).replace('T', ' ');
       const randomCode = generateRandomCode();
 
       fCtx.fillStyle = '#999999'; 
       fCtx.font = '16px Arial';
-      fCtx.fillText(`認證時間：${localISOTime}`, 500, 1020);
-      fCtx.fillText(`認證序號：${randomCode}`, 500, 1050);
+      fCtx.fillText(`認證時間：${localISOTime}`, 500, 1070);
+      fCtx.fillText(`認證序號：${randomCode}`, 500, 1100);
 
       const base64Image = finalCanvas.toDataURL('image/jpeg', 0.8);
 
@@ -371,7 +422,12 @@
           memberId: memberId, 
           memberName: memberName, 
           base64Image: base64Image, 
-          randomCode: randomCode 
+          randomCode: randomCode,
+          occupation: occupation,
+          medHistory: medHistory,
+          avoidAreas: avoidAreas,
+          focusAreas: focusAreas,
+          recentAcc: recentAcc
         }) 
       })
       .then(res => res.json())
