@@ -7,6 +7,7 @@ let currentMemberName = "";
 
 window.onload = function() {
   setupBookingInputs();
+  
   liff.init({ liffId: LIFF_ID }).then(() => {
     if (!liff.isLoggedIn()) {
       liff.login(); 
@@ -26,6 +27,7 @@ function setupBookingInputs() {
   document.getElementById("date3").min = todayString;
   
   let optionsHtml = '<option value="">時間</option>';
+  
   for (let h = 9; h <= 16; h++) {
     let hour = h.toString().padStart(2, '0');
     optionsHtml += `<option value="${hour}:00">${hour}:00</option>`;
@@ -90,6 +92,7 @@ function bindAccount() {
 
 function renderDashboard(data) {
   document.getElementById("mainSystem").classList.remove("hidden");
+  
   currentJwId = data.profile.id;
   currentMemberName = data.profile.name; 
   
@@ -177,15 +180,24 @@ function renderDashboard(data) {
   if (data.history && data.history.length > 0) {
     data.history.forEach(record => {
       let imgsHtml = "";
+      
       if (record.checkInImg) {
-         imgsHtml += `<p style="margin-bottom:5px; font-size:13px; font-weight:bold; color:var(--primary-color);">📋 當次報到紀錄表：</p>
-                      <img src="${record.checkInImg}" class="img-preview" alt="報到表單">`;
+         imgsHtml += `
+           <p style="margin-bottom:5px; font-size:13px; font-weight:bold; color:var(--primary-color);">📋 當次報到紀錄表：</p>
+           <img src="${record.checkInImg}" class="img-preview" alt="報到表單">
+         `;
       }
       if (record.beforeImg) {
-         imgsHtml += `<p style="margin-bottom:5px; margin-top:10px; font-size:13px;">調理前：</p><img src="${record.beforeImg}" class="img-preview">`;
+         imgsHtml += `
+           <p style="margin-bottom:5px; margin-top:10px; font-size:13px;">調理前：</p>
+           <img src="${record.beforeImg}" class="img-preview">
+         `;
       }
       if (record.afterImg) {
-         imgsHtml += `<p style="margin-bottom:5px; margin-top:10px; font-size:13px;">調理後：</p><img src="${record.afterImg}" class="img-preview">`;
+         imgsHtml += `
+           <p style="margin-bottom:5px; margin-top:10px; font-size:13px;">調理後：</p>
+           <img src="${record.afterImg}" class="img-preview">
+         `;
       }
 
       historyContainer.innerHTML += `
@@ -244,6 +256,7 @@ function changeBookingHandler(timeStr, serviceStr, actionType) {
       preConfirm: () => {
         const date = document.getElementById('swal-date').value;
         const time = document.getElementById('swal-time').value;
+        
         if (!date || !time) { 
           Swal.showValidationMessage('請完整選擇新的日期與時間喔！'); 
           return false; 
@@ -369,7 +382,9 @@ function submitBooking() {
     title: '處理中...', 
     text: '正在送出您的預約', 
     allowOutsideClick: false, 
-    didOpen: () => { Swal.showLoading(); } 
+    didOpen: () => { 
+      Swal.showLoading(); 
+    } 
   });
 
   fetch(GAS_URL, { 
@@ -388,6 +403,7 @@ function submitBooking() {
   .then(data => {
     if (data.status === "success") {
       Swal.fire('申請已送出', '我們會盡快確認您的預約時間。', 'success');
+      
       document.getElementById("date1").value = ""; 
       document.getElementById("time1").value = ""; 
       document.getElementById("date2").value = ""; 
@@ -398,6 +414,7 @@ function submitBooking() {
       
       document.getElementById("loadingMsg").classList.remove("hidden"); 
       document.getElementById("mainSystem").classList.add("hidden");
+      
       getUserDataAndLogin();
     } else { 
       Swal.fire('錯誤', data.message, 'error'); 
