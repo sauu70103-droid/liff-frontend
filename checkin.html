@@ -37,11 +37,13 @@
       cursor: pointer;
       overflow: hidden;
     }
+    
     .preview-container img {
       width: 100%;
       height: auto;
       display: none;
     }
+    
     .preview-text {
       color: var(--primary-color);
       font-weight: bold;
@@ -50,14 +52,18 @@
     /* 彈出式畫板 (Modal) 樣式 */
     .modal-overlay {
       position: fixed;
-      top: 0; left: 0; width: 100%; height: 100%;
+      top: 0; 
+      left: 0; 
+      width: 100%; 
+      height: 100%;
       background: rgba(0, 0, 0, 0.85);
-      display: none; /* 預設隱藏 */
+      display: none; 
       z-index: 9999;
       flex-direction: column;
       align-items: center;
       justify-content: center;
     }
+    
     .modal-content {
       width: 95%;
       max-width: 500px;
@@ -68,6 +74,7 @@
       display: flex;
       flex-direction: column;
     }
+    
     .canvas-wrapper { 
       position: relative; 
       width: 100%; 
@@ -79,6 +86,7 @@
       touch-action: none; 
       background: #fff; 
     }
+    
     #bodyMapCanvas { 
       position: absolute; 
       top: 0; 
@@ -87,10 +95,12 @@
       height: 100%; 
       cursor: crosshair; 
     }
+    
     .modal-actions {
       display: flex;
       gap: 10px;
     }
+    
     .modal-actions button {
       margin-bottom: 0;
     }
@@ -158,26 +168,25 @@
 
     document.getElementById('bookingInfo').innerHTML = `會員：${memberName} (${memberId})<br>預約：${bookingTime} - ${serviceType}`;
 
-    let bodyMap, sigPad, bodyImg;
-    let isBodyMapDrawn = false; // 紀錄是否有畫過圖
+    let bodyMap;
+    let sigPad;
+    let bodyImg;
+    let isBodyMapDrawn = false; 
 
     window.onload = function() {
-      // 初始化簽名板
       sigPad = setupCanvas('signaturePad', false);
       
-      // 預先載入人體圖背景
+      // 注意：圖片名稱已修正為 body_map.jpg
       bodyImg = new Image();
-      bodyImg.src = 'body_map.jpg'; // 已修正為單一附檔名
+      bodyImg.src = 'body_map.jpg'; 
     };
 
-    // --- 畫布共用邏輯 ---
     function setupCanvas(canvasId, isImageBg = false) {
       const canvas = document.getElementById(canvasId);
       const ctx = canvas.getContext('2d');
       
-      // 設定實際解析度
       const rect = canvas.getBoundingClientRect();
-      canvas.width = rect.width || 400; // 給予預設值防呆
+      canvas.width = rect.width || 400; 
       canvas.height = rect.height || (isImageBg ? 400 : 150);
       
       ctx.lineWidth = 3;
@@ -188,7 +197,7 @@
 
       const getPos = (e) => {
         const r = canvas.getBoundingClientRect();
-        if (e.touches) {
+        if (e.touches && e.touches.length > 0) {
           return { x: e.touches[0].clientX - r.left, y: e.touches[0].clientY - r.top };
         } else {
           return { x: e.clientX - r.left, y: e.clientY - r.top };
@@ -196,12 +205,13 @@
       };
 
       const start = (e) => { 
-        e.preventDefault(); 
+        e.preventDefault(); // 防止手機滾動
         isDrawing = true; 
         const p = getPos(e); 
         ctx.beginPath(); 
         ctx.moveTo(p.x, p.y); 
       };
+      
       const draw = (e) => { 
         e.preventDefault(); 
         if (!isDrawing) return; 
@@ -209,6 +219,7 @@
         ctx.lineTo(p.x, p.y); 
         ctx.stroke(); 
       };
+      
       const stop = () => { 
         isDrawing = false; 
         ctx.closePath(); 
@@ -218,22 +229,20 @@
       canvas.addEventListener('mousemove', draw); 
       canvas.addEventListener('mouseup', stop); 
       canvas.addEventListener('mouseout', stop);
-      canvas.addEventListener('touchstart', start, {passive:false}); 
-      canvas.addEventListener('touchmove', draw, {passive:false}); 
+      
+      canvas.addEventListener('touchstart', start, { passive: false }); 
+      canvas.addEventListener('touchmove', draw, { passive: false }); 
       canvas.addEventListener('touchend', stop);
 
       return { canvas, ctx };
     }
 
-    // --- 彈出畫板邏輯 ---
     function openDrawingModal() {
       const modal = document.getElementById('drawingModal');
       modal.style.display = 'flex';
       
-      // 防止背景滾動
       document.body.style.overflow = 'hidden';
 
-      // 每次打開時，確保畫布大小正確並重繪背景
       if (!bodyMap) {
         bodyMap = setupCanvas('bodyMapCanvas', true);
       }
@@ -258,15 +267,14 @@
     function closeAndSaveDrawing() {
       const modal = document.getElementById('drawingModal');
       modal.style.display = 'none';
-      document.body.style.overflow = 'auto'; // 恢復背景滾動
+      document.body.style.overflow = 'auto'; 
 
-      // 將畫好的內容輸出到主畫面的預覽圖中
       const previewImg = document.getElementById('bodyMapResultImg');
       const previewText = document.getElementById('previewText');
       
       previewImg.src = bodyMap.canvas.toDataURL('image/jpeg', 0.8);
       previewImg.style.display = 'block';
-      previewText.style.display = 'none'; // 隱藏文字
+      previewText.style.display = 'none'; 
       
       isBodyMapDrawn = true;
     }
@@ -282,7 +290,6 @@
       return canvas.toDataURL() === blank.toDataURL();
     }
 
-    // --- 合成與送出 ---
     function generateRandomCode() { 
       return Math.random().toString(36).substring(2, 10).toUpperCase(); 
     }
@@ -308,7 +315,9 @@
         title: '生成表單中...', 
         text: '正在加密儲存您的報到資料', 
         allowOutsideClick: false, 
-        didOpen: () => { Swal.showLoading(); } 
+        didOpen: () => { 
+          Swal.showLoading(); 
+        } 
       });
 
       const finalCanvas = document.createElement('canvas');
@@ -316,7 +325,6 @@
       finalCanvas.height = 1100;
       const fCtx = finalCanvas.getContext('2d');
 
-      // 畫白底
       fCtx.fillStyle = '#FFFFFF'; 
       fCtx.fillRect(0, 0, finalCanvas.width, finalCanvas.height);
       
@@ -329,7 +337,6 @@
       fCtx.fillText(`會員姓名：${memberName}`, 40, 160);
       fCtx.fillText(`預約服務：${serviceType}`, 40, 200);
 
-      // 將 Modal 中畫好的人體圖畫布合成進來
       fCtx.drawImage(bodyMap.canvas, 40, 240, 720, 360);
 
       fCtx.font = 'bold 20px Arial'; 
@@ -371,13 +378,15 @@
       .then(data => {
         if (data.status === "success") {
           Swal.fire('報到成功', '已為您完成本次報到手續！', 'success').then(() => { 
-            window.location.href = 'index.html'; // 報到完畢自動跳回首頁
+            window.location.href = 'index.html'; 
           });
         } else { 
           Swal.fire('錯誤', data.message, 'error'); 
         }
       })
-      .catch(err => Swal.fire('錯誤', '網路連線異常，請稍後再試。', 'error'));
+      .catch(err => {
+        Swal.fire('錯誤', '網路連線異常，請稍後再試。', 'error');
+      });
     }
   </script>
 </body>
