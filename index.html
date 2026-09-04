@@ -133,6 +133,7 @@
       display: none !important; 
     }
     
+    /* 調整頁籤為一排 4 個 */
     .tabs { 
       display: flex; 
       justify-content: space-between; 
@@ -149,8 +150,9 @@
       color: var(--text-muted); 
       border: none; 
       margin-bottom: 0; 
-      padding: 10px 0; 
+      padding: 10px 2px; 
       border-radius: 8px; 
+      font-size: 14px;
     }
     
     .tab-btn.active { 
@@ -218,63 +220,40 @@
       width: 4px; 
     }
     
-    .booking-box.yellow::before { 
-      background: var(--yellow-light); 
-    }
+    .booking-box.yellow::before { background: var(--yellow-light); }
+    .booking-box.green::before { background: var(--green-light); }
+    .booking-box.blue::before { background: var(--blue-light); }
+    .booking-box.red::before { background: var(--red-light); }
+    .booking-box.red { background: #FCF3F2; border-color: #F5C6CB; }
     
-    .booking-box.green::before { 
-      background: var(--green-light); 
-    }
+    .booking-box .title { font-weight: bold; margin-bottom: 5px; font-size: 15px; padding-left: 8px; }
+    .booking-box .detail { color: var(--text-muted); font-size: 14px; margin-bottom: 10px; padding-left: 8px; }
     
-    .booking-box.blue::before { 
-      background: var(--blue-light); 
+    .status-text.green { color: var(--green-light); font-weight: bold; font-size: 13px; }
+    .status-text.blue { color: var(--blue-light); font-weight: bold; font-size: 13px; }
+    .status-text.yellow { color: var(--yellow-light); font-weight: bold; font-size: 13px; }
+    .status-text.red { color: var(--red-light); font-weight: bold; font-size: 13px; }
+
+    /* 電子簽名畫布樣式 */
+    .signature-container {
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      background: #fff;
+      margin-bottom: 10px;
+      overflow: hidden;
+      touch-action: none; /* 防止在畫布上滾動螢幕 */
     }
-    
-    .booking-box.red::before { 
-      background: var(--red-light); 
+    #signaturePad {
+      width: 100%;
+      height: 200px;
+      display: block;
+      cursor: crosshair;
     }
-    
-    .booking-box.red { 
-      background: #FCF3F2; 
-      border-color: #F5C6CB; 
-    }
-    
-    .booking-box .title { 
-      font-weight: bold; 
-      margin-bottom: 5px; 
-      font-size: 15px; 
-      padding-left: 8px; 
-    }
-    
-    .booking-box .detail { 
-      color: var(--text-muted); 
-      font-size: 14px; 
-      margin-bottom: 10px; 
-      padding-left: 8px; 
-    }
-    
-    .status-text.green { 
-      color: var(--green-light); 
-      font-weight: bold; 
-      font-size: 13px; 
-    }
-    
-    .status-text.blue { 
-      color: var(--blue-light); 
-      font-weight: bold; 
-      font-size: 13px; 
-    }
-    
-    .status-text.yellow { 
-      color: var(--yellow-light); 
-      font-weight: bold; 
-      font-size: 13px; 
-    }
-    
-    .status-text.red { 
-      color: var(--red-light); 
-      font-weight: bold; 
-      font-size: 13px; 
+    .img-preview {
+      width: 100%;
+      border-radius: 8px;
+      margin-top: 10px;
+      border: 1px solid var(--border-color);
     }
   </style>
 </head>
@@ -298,10 +277,12 @@
     <div id="mainSystem" class="hidden">
       <div class="tabs">
         <button class="tab-btn active" id="btnTab1" onclick="switchTab(1)">基本資料</button>
+        <button class="tab-btn" id="btnTab4" onclick="switchTab(4)">自助報到</button>
         <button class="tab-btn" id="btnTab2" onclick="switchTab(2)">調理紀錄</button>
         <button class="tab-btn" id="btnTab3" onclick="switchTab(3)">預約專區</button>
       </div>
 
+      <!-- 分頁 1: 基本資料 -->
       <div id="tab1" class="tab-content">
         <div class="card">
           <h2 id="displayName" style="margin-bottom: 5px;">載入中...</h2>
@@ -353,6 +334,37 @@
         </div>
       </div>
 
+      <!-- 分頁 4: 自助報到 (每次來店必填) -->
+      <div id="tab4" class="tab-content hidden">
+        <div class="card" id="checkInFormContainer">
+          <h3>自助報到與同意書</h3>
+          <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 20px;">歡迎蒞臨錦葳，為保障您的權益與提供最適合的調理服務，請據實填寫以下狀況。</p>
+          
+          <label>1. 開刀史、意外史、特殊疾病 (防呆：若無請填無)</label>
+          <input type="text" id="chkMedicalHistory" placeholder="例如：盲腸炎開刀、高血壓... (若無請填寫「無」)">
+          
+          <label>2. 需避開調理的部位 (防呆：若無請填無)</label>
+          <input type="text" id="chkAvoidAreas" placeholder="例如：右膝蓋、左肩... (若無請填寫「無」)">
+          
+          <label>3. 本次欲加強調理的部位</label>
+          <input type="text" id="chkFocusAreas" placeholder="例如：肩頸緊繃、下背痠痛...">
+          
+          <label>4. 近期是否有新增意外撞擊、跌倒等情況？ (防呆：若無請填無)</label>
+          <input type="text" id="chkRecentAccidents" placeholder="例如：上週騎車跌倒... (若無請填寫「無」)">
+          
+          <hr style="border: 0; border-top: 1px dashed var(--border-color); margin: 20px 0;">
+          
+          <label>本人同意並確認上述填寫狀況屬實：(請於下方空白處簽名)</label>
+          <div class="signature-container">
+            <canvas id="signaturePad"></canvas>
+          </div>
+          <button class="btn-small btn-secondary" onclick="clearSignature()" style="margin-bottom: 15px;">清除重簽</button>
+          
+          <button onclick="submitCheckIn()">確認送出報到資料</button>
+        </div>
+      </div>
+
+      <!-- 分頁 2: 調理紀錄 (歷史調閱) -->
       <div id="tab2" class="tab-content hidden">
         <div class="card">
           <h3>最近調理紀錄</h3>
@@ -360,6 +372,7 @@
         </div>
       </div>
 
+      <!-- 分頁 3: 預約專區 -->
       <div id="tab3" class="tab-content hidden">
         <div class="card">
           <h3>預約調理</h3>
@@ -409,9 +422,16 @@
     
     let userLineUid = "";
     let currentJwId = "";
+    let currentMemberName = "";
+
+    // 簽名板變數
+    let canvas, ctx;
+    let isDrawing = false;
 
     window.onload = function() {
       setupBookingInputs();
+      initSignaturePad(); // 初始化簽名板
+      
       liff.init({ liffId: LIFF_ID }).then(() => {
         if (!liff.isLoggedIn()) {
           liff.login(); 
@@ -443,6 +463,89 @@
       document.getElementById("time3").innerHTML = optionsHtml;
     }
 
+    // --- 電子簽名板邏輯 ---
+    function initSignaturePad() {
+      canvas = document.getElementById('signaturePad');
+      ctx = canvas.getContext('2d');
+      
+      // 設定高解析度畫布以防模糊
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = rect.width;
+      canvas.height = rect.height;
+      
+      ctx.lineWidth = 3;
+      ctx.lineCap = 'round';
+      ctx.strokeStyle = '#000';
+
+      // 電腦滑鼠事件
+      canvas.addEventListener('mousedown', startDrawing);
+      canvas.addEventListener('mousemove', draw);
+      canvas.addEventListener('mouseup', stopDrawing);
+      canvas.addEventListener('mouseout', stopDrawing);
+
+      // 手機觸控事件
+      canvas.addEventListener('touchstart', startDrawingTouch, { passive: false });
+      canvas.addEventListener('touchmove', drawTouch, { passive: false });
+      canvas.addEventListener('touchend', stopDrawing);
+    }
+
+    function getMousePos(e) {
+      const rect = canvas.getBoundingClientRect();
+      return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    }
+    
+    function getTouchPos(e) {
+      const rect = canvas.getBoundingClientRect();
+      return { x: e.touches[0].clientX - rect.left, y: e.touches[0].clientY - rect.top };
+    }
+
+    function startDrawing(e) {
+      isDrawing = true;
+      const pos = getMousePos(e);
+      ctx.beginPath();
+      ctx.moveTo(pos.x, pos.y);
+    }
+    
+    function startDrawingTouch(e) {
+      e.preventDefault(); // 防止滾動
+      isDrawing = true;
+      const pos = getTouchPos(e);
+      ctx.beginPath();
+      ctx.moveTo(pos.x, pos.y);
+    }
+
+    function draw(e) {
+      if (!isDrawing) return;
+      const pos = getMousePos(e);
+      ctx.lineTo(pos.x, pos.y);
+      ctx.stroke();
+    }
+    
+    function drawTouch(e) {
+      e.preventDefault();
+      if (!isDrawing) return;
+      const pos = getTouchPos(e);
+      ctx.lineTo(pos.x, pos.y);
+      ctx.stroke();
+    }
+
+    function stopDrawing() {
+      isDrawing = false;
+      ctx.closePath();
+    }
+
+    function clearSignature() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+
+    function isCanvasBlank() {
+      const blank = document.createElement('canvas');
+      blank.width = canvas.width;
+      blank.height = canvas.height;
+      return canvas.toDataURL() === blank.toDataURL();
+    }
+
+    // --- 資料讀取邏輯 ---
     function getUserDataAndLogin() {
       liff.getProfile().then(profile => {
         userLineUid = profile.userId;
@@ -496,6 +599,7 @@
     function renderDashboard(data) {
       document.getElementById("mainSystem").classList.remove("hidden");
       currentJwId = data.profile.id;
+      currentMemberName = data.profile.name; // 儲存姓名供報到使用
       
       document.getElementById("displayName").textContent = data.profile.name + "，您好！";
       document.getElementById("userJwId").textContent = data.profile.id;
@@ -523,19 +627,14 @@
         document.getElementById("toggleEditBtn").textContent = "修改個人資料";
       }
 
+      // 渲染預約狀態
       const bookingContainer = document.getElementById("upcomingBookingsContainer");
       let bookingHtml = "";
       const allUpcoming = [];
       
-      if (data.confirmedBookings) {
-        allUpcoming.push(...data.confirmedBookings);
-      }
-      if (data.pendingBookings) {
-        allUpcoming.push(...data.pendingBookings);
-      }
-      if (data.cancelledBookings) {
-        allUpcoming.push(...data.cancelledBookings); 
-      }
+      if (data.confirmedBookings) allUpcoming.push(...data.confirmedBookings);
+      if (data.pendingBookings) allUpcoming.push(...data.pendingBookings);
+      if (data.cancelledBookings) allUpcoming.push(...data.cancelledBookings); 
       
       if (allUpcoming.length > 0) {
         allUpcoming.forEach(b => {
@@ -543,7 +642,6 @@
           let statusHtml = `<span class="status-text ${lightColor}">${getIcon(lightColor)} ${b.status}</span>`;
           
           let extraInfo = "";
-          
           if (lightColor === "green" || lightColor === "blue") {
             extraInfo = `安排師傅：${b.therapist}`;
           } else if (lightColor === "yellow") {
@@ -571,18 +669,31 @@
       } else {
         bookingHtml = "<p style='color: var(--text-muted); font-size: 14px;'>目前無未來的預約紀錄。</p>";
       }
-      
       bookingContainer.innerHTML = bookingHtml;
 
+      // 渲染歷史紀錄 (History View 第一優先展示報到圖檔)
       const historyContainer = document.getElementById("historyList");
       historyContainer.innerHTML = ""; 
       
       if (data.history && data.history.length > 0) {
         data.history.forEach(record => {
+          let imgsHtml = "";
+          if (record.checkInImg) {
+             imgsHtml += `<p style="margin-bottom:5px; font-size:13px; font-weight:bold; color:var(--primary-color);">📋 當次報到紀錄表：</p>
+                          <img src="${record.checkInImg}" class="img-preview" alt="報到表單">`;
+          }
+          if (record.beforeImg) {
+             imgsHtml += `<p style="margin-bottom:5px; margin-top:10px; font-size:13px;">調理前：</p><img src="${record.beforeImg}" class="img-preview">`;
+          }
+          if (record.afterImg) {
+             imgsHtml += `<p style="margin-bottom:5px; margin-top:10px; font-size:13px;">調理後：</p><img src="${record.afterImg}" class="img-preview">`;
+          }
+
           historyContainer.innerHTML += `
             <div class="record-item">
               <strong>🗓️ ${record.date}</strong> | 師傅：${record.therapist}<br>
               <span style="color: var(--text-muted); font-size: 14px;">方案：${record.serviceType}</span>
+              ${imgsHtml}
             </div>
           `;
         });
@@ -598,6 +709,123 @@
       return '⏳';
     }
 
+    // --- 報到影像合成與送出 ---
+    function generateRandomCode() {
+      return Math.random().toString(36).substring(2, 10).toUpperCase();
+    }
+
+    function submitCheckIn() {
+      const medHistory = document.getElementById("chkMedicalHistory").value.trim();
+      const avoidAreas = document.getElementById("chkAvoidAreas").value.trim();
+      const focusAreas = document.getElementById("chkFocusAreas").value.trim();
+      const recentAcc = document.getElementById("chkRecentAccidents").value.trim();
+
+      if (!medHistory || !avoidAreas || !focusAreas || !recentAcc) {
+        Swal.fire('防呆提示', '請確實填寫所有欄位，若無該狀況請手動輸入「無」喔！', 'warning');
+        return;
+      }
+      if (isCanvasBlank()) {
+        Swal.fire('防呆提示', '請在下方空白處簽名確認！', 'warning');
+        return;
+      }
+
+      Swal.fire({ 
+        title: '生成表單中...', 
+        text: '正在加密儲存您的報到資料', 
+        allowOutsideClick: false, 
+        didOpen: () => { Swal.showLoading(); } 
+      });
+
+      // 原生 Canvas 渲染最終圖檔
+      const finalCanvas = document.createElement('canvas');
+      finalCanvas.width = 800;
+      finalCanvas.height = 1000;
+      const fCtx = finalCanvas.getContext('2d');
+
+      // 繪製白底
+      fCtx.fillStyle = '#FFFFFF';
+      fCtx.fillRect(0, 0, finalCanvas.width, finalCanvas.height);
+
+      // 繪製文字與標題
+      fCtx.fillStyle = '#333333';
+      fCtx.font = 'bold 32px Arial';
+      fCtx.fillText('錦葳 自助報到與同意書', 40, 60);
+      
+      fCtx.font = '24px Arial';
+      fCtx.fillText(`會員編號：${currentJwId}`, 40, 120);
+      fCtx.fillText(`會員姓名：${currentMemberName}`, 40, 160);
+      
+      fCtx.font = 'bold 20px Arial';
+      fCtx.fillText('1. 開刀史、意外史、特殊疾病：', 40, 240);
+      fCtx.font = '20px Arial';
+      fCtx.fillText(medHistory, 60, 280);
+
+      fCtx.font = 'bold 20px Arial';
+      fCtx.fillText('2. 需避開調理的部位：', 40, 340);
+      fCtx.font = '20px Arial';
+      fCtx.fillText(avoidAreas, 60, 380);
+
+      fCtx.font = 'bold 20px Arial';
+      fCtx.fillText('3. 本次欲加強調理的部位：', 40, 440);
+      fCtx.font = '20px Arial';
+      fCtx.fillText(focusAreas, 60, 480);
+
+      fCtx.font = 'bold 20px Arial';
+      fCtx.fillText('4. 近期新增意外撞擊、跌倒情況：', 40, 540);
+      fCtx.font = '20px Arial';
+      fCtx.fillText(recentAcc, 60, 580);
+
+      fCtx.font = 'bold 22px Arial';
+      fCtx.fillText('本人同意並確認上述填寫狀況屬實，特此簽名：', 40, 680);
+
+      // 繪製簽名圖
+      fCtx.drawImage(canvas, 40, 720, 400, 200);
+
+      // 壓上浮水印 (時間戳記與驗證碼)
+      const now = new Date();
+      const tzOffset = now.getTimezoneOffset() * 60000;
+      const localISOTime = (new Date(now.getTime() - tzOffset)).toISOString().slice(0, 19).replace('T', ' ');
+      const randomCode = generateRandomCode();
+
+      fCtx.fillStyle = '#999999';
+      fCtx.font = '16px Arial';
+      fCtx.fillText(`認證時間：${localISOTime}`, 500, 940);
+      fCtx.fillText(`認證序號：${randomCode}`, 500, 970);
+
+      // 轉換為 Base64
+      const base64Image = finalCanvas.toDataURL('image/jpeg', 0.8);
+
+      // 送出至後端
+      fetch(GAS_URL, { 
+        method: "POST", 
+        body: JSON.stringify({ 
+          action: "submitCheckIn", 
+          memberId: currentJwId, 
+          memberName: currentMemberName,
+          base64Image: base64Image,
+          randomCode: randomCode
+        }) 
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.status === "success") {
+          Swal.fire('報到成功', '已為您完成本次報到手續！', 'success');
+          // 清空表單
+          document.getElementById("chkMedicalHistory").value = "";
+          document.getElementById("chkAvoidAreas").value = "";
+          document.getElementById("chkFocusAreas").value = "";
+          document.getElementById("chkRecentAccidents").value = "";
+          clearSignature();
+          switchTab(2); // 自動跳轉至歷史紀錄
+          getUserDataAndLogin(); // 重新讀取資料
+        } else {
+          Swal.fire('錯誤', data.message, 'error');
+        }
+      })
+      .catch(err => Swal.fire('錯誤', '網路連線異常，請稍後再試。', 'error'));
+    }
+
+    // --- 其他表單操作邏輯保持不變 ---
     function changeBookingHandler(timeStr, serviceStr, actionType) {
       if (actionType === "modify") {
         let timeOptions = '<option value="">時間</option>';
@@ -755,9 +983,7 @@
         title: '處理中...', 
         text: '正在送出您的預約', 
         allowOutsideClick: false, 
-        didOpen: () => { 
-          Swal.showLoading(); 
-        } 
+        didOpen: () => { Swal.showLoading(); } 
       });
 
       fetch(GAS_URL, { 
@@ -776,7 +1002,6 @@
       .then(data => {
         if (data.status === "success") {
           Swal.fire('申請已送出', '我們會盡快確認您的預約時間。', 'success');
-          
           document.getElementById("date1").value = ""; 
           document.getElementById("time1").value = ""; 
           document.getElementById("date2").value = ""; 
