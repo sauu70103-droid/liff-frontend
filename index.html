@@ -10,8 +10,13 @@
 </head>
 <body>
   <div class="container">
-    <div class="logo-container"><img src="./logo.png" alt="錦葳"></div>
-    <div id="loadingMsg" class="card" style="text-align:center;"><h3 style="color: var(--text-muted);">連線至系統中，請稍候...</h3></div>
+    <div class="logo-container">
+      <img src="./logo.png" alt="錦葳">
+    </div>
+    
+    <div id="loadingMsg" class="card" style="text-align:center;">
+      <h3 style="color: var(--text-muted);">連線至系統中，請稍候...</h3>
+    </div>
     
     <div id="bindSection" class="card hidden">
       <h2>會員身分綁定</h2>
@@ -30,11 +35,23 @@
       <div id="tab1" class="tab-content">
         <div class="card">
           <h2 id="displayName" style="margin-bottom: 5px;">載入中...</h2>
-          <p style="margin-top:0;"><span class="badge" id="displayTier">一般會員</span> <span class="badge" id="displayPartner">無特約</span></p>
+          <p style="margin-top:0;">
+            <span class="badge" id="displayTier">一般會員</span> 
+            <span class="badge" id="displayPartner">無特約</span>
+          </p>
           <hr style="border: 0; border-top: 1px dashed var(--border-color); margin: 15px 0;">
-          <div class="info-row"><div class="info-label">專屬編號</div><div class="info-value" id="userJwId" style="color: var(--primary-color);"></div></div>
-          <div class="info-row"><div class="info-label">手機號碼</div><div class="info-value" id="displayPhone"></div></div>
-          <div class="info-row" style="margin-top: 15px;"><div class="info-label" style="line-height: 28px;">剩餘堂數</div><div class="info-value"><strong id="displayPackages" style="font-size: 22px; color: #D35400;">0</strong> 堂</div></div>
+          <div class="info-row">
+            <div class="info-label">專屬編號</div>
+            <div class="info-value" id="userJwId" style="color: var(--primary-color);"></div>
+          </div>
+          <div class="info-row">
+            <div class="info-label">手機號碼</div>
+            <div class="info-value" id="displayPhone"></div>
+          </div>
+          <div class="info-row" style="margin-top: 15px;">
+            <div class="info-label" style="line-height: 28px;">剩餘堂數</div>
+            <div class="info-value"><strong id="displayPackages" style="font-size: 22px; color: #D35400;">0</strong> 堂</div>
+          </div>
           <button id="toggleEditBtn" class="btn-secondary" onclick="toggleEditForm()" style="margin-top: 15px; margin-bottom: 15px;">修改個人資料</button>
 
           <hr style="border: 0; border-top: 1px dashed var(--border-color); margin: 15px 0;">
@@ -44,18 +61,33 @@
 
         <div class="card hidden" id="profileEditCard">
           <h3>修改個人資料</h3>
-          <label>姓名</label><input type="text" id="editName">
-          <label>手機號碼</label><input type="tel" id="editPhone" maxlength="10">
-          <label>生日</label><input type="date" id="editBirthday">
+          <label>姓名</label>
+          <input type="text" id="editName">
+          
+          <label>手機號碼</label>
+          <input type="tel" id="editPhone" maxlength="10">
+          
+          <label>生日</label>
+          <input type="date" id="editBirthday">
+          
           <label>性別</label>
-          <select id="editGender"><option value="">請選擇</option><option value="男">男</option><option value="女">女</option><option value="其他">其他</option></select>
+          <select id="editGender">
+            <option value="">請選擇</option>
+            <option value="男">男</option>
+            <option value="女">女</option>
+            <option value="其他">其他</option>
+          </select>
+          
           <button onclick="updateProfile()">儲存修改</button>
           <button class="btn-secondary" onclick="toggleEditForm()">取消修改</button>
         </div>
       </div>
 
       <div id="tab2" class="tab-content hidden">
-        <div class="card"><h3>最近調理紀錄</h3><div id="historyList"></div></div>
+        <div class="card">
+          <h3>最近調理紀錄</h3>
+          <div id="historyList"></div>
+        </div>
       </div>
 
       <div id="tab3" class="tab-content hidden">
@@ -73,10 +105,28 @@
             <option value="專案套票/多堂課程 (純購買)">專案套票/多堂課程 (純購買)</option>
             <option value="其他">其他</option>
           </select>
-          <label>期望時間 1 (必填)</label><div class="datetime-group"><input type="date" id="date1"><select id="time1"></select></div>
-          <label>期望時間 2 (選填)</label><div class="datetime-group"><input type="date" id="date2"><select id="time2"></select></div>
-          <label>期望時間 3 (選填)</label><div class="datetime-group"><input type="date" id="date3"><select id="time3"></select></div>
-          <label>狀況描述與備註 (選填)</label><textarea id="bookingRemarks" rows="3" placeholder="請簡單描述狀況..."></textarea>
+
+          <label>期望時間 1 (必填)</label>
+          <div class="datetime-group">
+            <input type="date" id="date1">
+            <select id="time1"></select>
+          </div>
+          
+          <label>期望時間 2 (選填)</label>
+          <div class="datetime-group">
+            <input type="date" id="date2">
+            <select id="time2"></select>
+          </div>
+          
+          <label>期望時間 3 (選填)</label>
+          <div class="datetime-group">
+            <input type="date" id="date3">
+            <select id="time3"></select>
+          </div>
+          
+          <label>狀況描述與備註 (選填)</label>
+          <textarea id="bookingRemarks" rows="3" placeholder="請簡單描述狀況..."></textarea>
+          
           <button onclick="submitBooking()">送出預約申請</button>
         </div>
       </div>
