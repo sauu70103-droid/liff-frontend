@@ -1,0 +1,64 @@
+:root {
+  --bg-color: #F8F6F1; 
+  --card-bg: #FFFFFF; 
+  --primary-color: #B9936C; 
+  --primary-hover: #9E7A55;
+  --text-main: #4A3B32; 
+  --text-muted: #8C7B70; 
+  --border-color: #E2D3C5; 
+  --secondary-bg: #EFE4DA;
+  --green-light: #4CAF50; 
+  --blue-light: #3498DB; 
+  --yellow-light: #F39C12; 
+  --red-light: #E74C3C;
+}
+
+body { font-family: '微軟正黑體', sans-serif; background-color: var(--bg-color); margin: 0; padding: 15px; color: var(--text-main); }
+.container { max-width: 500px; margin: 0 auto; }
+.logo-container { text-align: center; margin-bottom: 20px; }
+.logo-container img { max-width: 160px; height: auto; }
+.card { background: var(--card-bg); border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(139, 111, 88, 0.1); }
+h2, h3 { margin-top: 0; color: var(--text-main); }
+
+input, select, textarea, button { width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 8px; border: 1px solid var(--border-color); box-sizing: border-box; font-size: 16px; color: var(--text-main); background: #faf8f5; }
+input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary-color); }
+textarea { resize: vertical; font-family: inherit; } 
+
+button { background-color: var(--primary-color); color: white; border: none; cursor: pointer; font-weight: bold; transition: 0.3s; }
+button:hover { background-color: var(--primary-hover); }
+.btn-secondary { background-color: var(--secondary-bg); color: var(--text-main); border: 1px solid var(--primary-color); }
+.btn-secondary:hover { background-color: var(--border-color); }
+.btn-small { padding: 6px 12px; font-size: 13px; margin-bottom: 0; width: auto; display: inline-block; border-radius: 6px; }
+.btn-outline { background: transparent; color: var(--primary-color); border: 1px solid var(--primary-color); }
+
+.badge { display: inline-block; padding: 4px 10px; background: var(--secondary-bg); color: var(--text-main); border-radius: 6px; font-size: 13px; font-weight: bold; border: 1px solid var(--primary-color); }
+.hidden { display: none !important; }
+
+.tabs { display: flex; justify-content: space-between; margin-bottom: 20px; background: var(--card-bg); border-radius: 12px; padding: 5px; box-shadow: 0 2px 5px rgba(139, 111, 88, 0.1); }
+.tab-btn { flex: 1; background: transparent; color: var(--text-muted); border: none; margin-bottom: 0; padding: 10px 0; border-radius: 8px; }
+.tab-btn.active { background: var(--primary-color); color: white; }
+
+.record-item { border-bottom: 1px solid var(--border-color); padding-bottom: 15px; margin-bottom: 15px; }
+.record-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+.info-row { display: flex; margin: 10px 0; font-size: 15px; }
+.info-label { width: 80px; color: var(--text-muted); font-weight: bold; }
+.info-value { flex: 1; color: var(--text-main); font-weight: 500; }
+.datetime-group { display: flex; gap: 10px; margin-bottom: 15px; }
+.datetime-group input, .datetime-group select { flex: 1; margin-bottom: 0; }
+
+.booking-box { border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; margin-bottom: 12px; background: #faf8f5; position: relative; overflow: hidden; }
+.booking-box::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; }
+.booking-box.yellow::before { background: var(--yellow-light); }
+.booking-box.green::before { background: var(--green-light); }
+.booking-box.blue::before { background: var(--blue-light); }
+.booking-box.red::before { background: var(--red-light); }
+.booking-box.red { background: #FCF3F2; border-color: #F5C6CB; }
+
+.booking-box .title { font-weight: bold; margin-bottom: 5px; font-size: 15px; padding-left: 8px; }
+.booking-box .detail { color: var(--text-muted); font-size: 14px; margin-bottom: 10px; padding-left: 8px; }
+.status-text.green { color: var(--green-light); font-weight: bold; font-size: 13px; }
+.status-text.blue { color: var(--blue-light); font-weight: bold; font-size: 13px; }
+.status-text.yellow { color: var(--yellow-light); font-weight: bold; font-size: 13px; }
+.status-text.red { color: var(--red-light); font-weight: bold; font-size: 13px; }
+
+.img-preview { width: 100%; border-radius: 8px; margin-top: 10px; border: 1px solid var(--border-color); }
