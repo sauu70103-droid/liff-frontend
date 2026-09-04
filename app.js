@@ -220,6 +220,12 @@ function getIcon(light) {
   return '⏳';
 }
 
+// 【新增】：固定的報到總入口函式
+function goToGeneralCheckIn() {
+  window.location.href = `checkin.html?id=${currentJwId}&name=${currentMemberName}&time=未指定預約&service=一般報到`;
+}
+
+// 預約單上的專屬報到入口函式
 function goToCheckIn(timeStr, serviceStr) {
   window.location.href = `checkin.html?id=${currentJwId}&name=${currentMemberName}&time=${timeStr}&service=${serviceStr}`;
 }
