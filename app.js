@@ -62,7 +62,7 @@ function getUserDataAndLogin() {
 }
 
 function bindAccount() {
-  // 【JW 主鍵生成統一】：前端清洗剔除非數字字元
+  // 嚴格清洗非數字字元
   let rawPhone = document.getElementById("phoneInput").value.replace(/\D/g, '');
   
   if(rawPhone.length !== 10 || !rawPhone.startsWith('09')) { 
@@ -175,16 +175,42 @@ function renderDashboard(data) {
   
   if (data.history && data.history.length > 0) {
     data.history.forEach(record => {
-      let imgsHtml = "";
-      if (record.checkInImg) imgsHtml += `<p style="margin-bottom:5px; font-size:13px; font-weight:bold; color:var(--primary-color);">📋 當次報到紀錄表：</p><img src="${record.checkInImg}" class="img-preview" alt="報到表單">`;
-      if (record.beforeImg) imgsHtml += `<p style="margin-bottom:5px; margin-top:10px; font-size:13px;">調理前：</p><img src="${record.beforeImg}" class="img-preview">`;
-      if (record.afterImg) imgsHtml += `<p style="margin-bottom:5px; margin-top:10px; font-size:13px;">調理後：</p><img src="${record.afterImg}" class="img-preview">`;
+      let contentHtml = "";
+      
+      // 純客觀資料呈現：本次加強部位 (會員自填)
+      if (record.focusAreas) {
+        contentHtml += `
+          <div style="margin: 8px 0; padding: 8px; background: var(--secondary-bg); border-radius: 6px; font-size: 14px;">
+            <strong style="color:var(--primary-color);">📌 會員填寫重點：</strong><br>${record.focusAreas}
+          </div>
+        `;
+      }
+      
+      // 視覺化呈現：點擊觸發燈箱 openLightbox()
+      if (record.checkInImg) {
+         contentHtml += `
+           <p style="margin-bottom:5px; font-size:13px; font-weight:bold; color:var(--primary-color);">📋 當次報到紀錄表：</p>
+           <img src="${record.checkInImg}" class="img-preview" alt="報到表單" onclick="openLightbox(this.src)">
+         `;
+      }
+      if (record.beforeImg) {
+         contentHtml += `
+           <p style="margin-bottom:5px; margin-top:10px; font-size:13px;">調理前：</p>
+           <img src="${record.beforeImg}" class="img-preview" alt="調理前照片" onclick="openLightbox(this.src)">
+         `;
+      }
+      if (record.afterImg) {
+         contentHtml += `
+           <p style="margin-bottom:5px; margin-top:10px; font-size:13px;">調理後：</p>
+           <img src="${record.afterImg}" class="img-preview" alt="調理後照片" onclick="openLightbox(this.src)">
+         `;
+      }
 
       historyContainer.innerHTML += `
         <div class="record-item">
           <strong>🗓️ ${record.date}</strong> | 師傅：${record.therapist}<br>
           <span style="color: var(--text-muted); font-size: 14px;">方案：${record.serviceType}</span>
-          ${imgsHtml}
+          ${contentHtml}
         </div>
       `;
     });
@@ -245,7 +271,6 @@ function changeBookingHandler(timeStr, serviceStr, actionType) {
           Swal.showValidationMessage('請完整選擇新的日期與時間喔！'); 
           return false; 
         }
-        // 【時間寫入防呆】：強制拋轉 YYYY-MM-DD HH:mm 格式
         return `${date} ${time}`;
       }
     }).then((result) => { 
@@ -359,7 +384,6 @@ function submitBooking() {
     return; 
   }
 
-  // 【時間寫入防呆】：強制拋轉 YYYY-MM-DD HH:mm 格式
   const fullTime1 = `${date1} ${time1}`;
   const fullTime2 = (date2 && time2) ? `${date2} ${time2}` : "";
   const fullTime3 = (date3 && time3) ? `${date3} ${time3}` : "";
@@ -419,4 +443,25 @@ function switchTab(tabIndex) {
   
   document.getElementById('tab' + tabIndex).classList.remove('hidden'); 
   document.getElementById('btnTab' + tabIndex).classList.add('active');
+}
+
+// ----------------------------------------------------------------------------
+// 🔍 燈箱控制邏輯 (Lightbox)
+// ----------------------------------------------------------------------------
+function openLightbox(imageSrc) {
+  const overlay = document.getElementById("globalLightbox");
+  const imgElement = document.getElementById("lightboxImage");
+  
+  if (overlay && imgElement) {
+    imgElement.src = imageSrc;
+    overlay.style.display = "flex";
+  }
+}
+
+function closeLightbox() {
+  const overlay = document.getElementById("globalLightbox");
+  if (overlay) {
+    overlay.style.display = "none";
+    document.getElementById("lightboxImage").src = "";
+  }
 }
