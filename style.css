@@ -234,9 +234,40 @@ button:hover {
 .status-text.yellow { color: var(--yellow-light); font-weight: bold; font-size: 13px; }
 .status-text.red { color: var(--red-light); font-weight: bold; font-size: 13px; }
 
+/* 【本次新增】：影像燈箱樣式與圖片控制 */
 .img-preview { 
   width: 100%; 
   border-radius: 8px; 
   margin-top: 10px; 
-  border: 1px solid var(--border-color); 
+  border: 1px solid var(--border-color);
+  cursor: zoom-in;
+}
+
+.lightbox-overlay {
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0, 0, 0, 0.9);
+  display: none;
+  z-index: 10000;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+
+.lightbox-img {
+  max-width: 95%;
+  max-height: 80vh;
+  border-radius: 4px;
+  object-fit: contain;
+  filter: none; /* 絕對無修圖 */
+}
+
+.lightbox-close {
+  position: absolute;
+  top: 20px; right: 20px;
+  color: #fff;
+  font-size: 30px;
+  cursor: pointer;
+  background: none;
+  border: none;
 }
