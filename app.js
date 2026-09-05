@@ -98,7 +98,8 @@ function renderDashboard(data) {
   
   sessionStorage.setItem("jwProfile", JSON.stringify(data.profile));
   
-  document.getElementById("displayName").textContent = data.profile.name + "，您好！";
+  // 【首頁問候語優化】：變更為更具歸屬感的問候
+  document.getElementById("displayName").textContent = data.profile.name + "，歡迎回家！";
   document.getElementById("userJwId").textContent = data.profile.id;
   document.getElementById("displayTier").textContent = data.profile.tier || "一般會員";
   document.getElementById("displayPartner").textContent = data.profile.partner ? ("特約：" + data.profile.partner) : "無特約";
@@ -150,13 +151,14 @@ function renderDashboard(data) {
         extraInfo = `此時段無空檔，請重新預約或洽客服`;
       }
 
+      // 【報到按鈕更名】：將按鈕文字精簡為「我要報到」
       bookingHtml += `
         <div class="booking-box ${lightColor}">
           <div class="title">${b.time} - ${b.service}</div>
           <div class="detail">${statusHtml} | ${extraInfo}</div>
           ${lightColor !== 'red' ? `
           <div style="text-align: right; padding-right: 8px;">
-            ${(lightColor === 'green' || lightColor === 'blue') ? `<button class="btn-small" onclick="goToCheckIn('${b.time}', '${b.service}')" style="margin-right: 5px; background:var(--green-light);">即時調理資料產生</button>` : ''}
+            ${(lightColor === 'green' || lightColor === 'blue') ? `<button class="btn-small" onclick="goToCheckIn('${b.time}', '${b.service}')" style="margin-right: 5px; background:var(--green-light);">我要報到</button>` : ''}
             <button class="btn-small btn-outline" onclick="changeBookingHandler('${b.time}', '${b.service}', 'modify')">要求改期</button>
             <button class="btn-small btn-secondary" onclick="changeBookingHandler('${b.time}', '${b.service}', 'cancel')" style="margin-left: 5px;">取消</button>
           </div>` : ''}
