@@ -172,10 +172,12 @@
   <script>
     const GAS_URL = "https://script.google.com/macros/s/AKfycbwApGqvuUMuERNtrlEr1NHSKxooH_fD9XF_t1v-iKg_gDJ0kRBqnrKodhjVlIWa-u16sw/exec";
     
+    // 解析網址上的預約資訊
     const urlParams = new URLSearchParams(window.location.search);
     const bookingTime = urlParams.get('time');
     const serviceType = urlParams.get('service');
     
+    // 從暫存提取會員資料
     const profileJson = sessionStorage.getItem("jwProfile");
     if (!profileJson) {
       alert("讀取會員資料失敗，請重新登入！");
@@ -194,6 +196,7 @@
     let isBodyMapDrawn = false; 
 
     window.onload = function() {
+      // 自動帶入半永久資料
       document.getElementById("chkOccupation").value = profile.occupation || "";
       document.getElementById("chkMedicalHistory").value = profile.medHistory || "";
       document.getElementById("chkAvoidAreas").value = profile.avoidAreas || "";
@@ -365,6 +368,7 @@
       fCtx.fillText(`會員姓名：${memberName}`, 40, 160);
       fCtx.fillText(`預約服務：${serviceType}`, 40, 200);
 
+      // 基本資料
       fCtx.font = 'bold 20px Arial'; 
       fCtx.fillText('職業：', 40, 250);
       fCtx.font = '20px Arial'; 
@@ -380,8 +384,10 @@
       fCtx.font = '20px Arial'; 
       fCtx.fillText(avoidAreas, 180, 330);
 
+      // 人體圖
       fCtx.drawImage(bodyMap.canvas, 40, 360, 720, 360);
 
+      // 當次需求
       fCtx.font = 'bold 20px Arial'; 
       fCtx.fillText('本次欲加強部位：', 40, 770);
       fCtx.font = '20px Arial'; 
@@ -392,10 +398,12 @@
       fCtx.font = '20px Arial'; 
       fCtx.fillText(recentAcc, 340, 810);
 
+      // 簽名
       fCtx.font = 'bold 22px Arial'; 
       fCtx.fillText('本人同意並確認上述填寫狀況屬實，特此簽名：', 40, 880);
       fCtx.drawImage(sigPad.canvas, 40, 900, 400, 150);
 
+      // 浮水印
       const now = new Date();
       const localISOTime = (new Date(now.getTime() - now.getTimezoneOffset() * 60000)).toISOString().slice(0, 19).replace('T', ' ');
       const randomCode = generateRandomCode();
