@@ -62,10 +62,11 @@ function getUserDataAndLogin() {
 }
 
 function bindAccount() {
-  const phone = document.getElementById("phoneInput").value.trim();
+  // 【JW 主鍵生成統一】：前端清洗剔除非數字字元
+  let rawPhone = document.getElementById("phoneInput").value.replace(/\D/g, '');
   
-  if(phone.length !== 10) { 
-    Swal.fire('提示', '請輸入完整的 10 碼手機號碼！', 'warning'); 
+  if(rawPhone.length !== 10 || !rawPhone.startsWith('09')) { 
+    Swal.fire('提示', '請輸入完整的 10 碼手機號碼 (09開頭)！', 'warning'); 
     return; 
   }
   
@@ -75,7 +76,7 @@ function bindAccount() {
 
   fetch(GAS_URL, { 
     method: "POST", 
-    body: JSON.stringify({ action: "bindAccount", lineUid: userLineUid, phone: phone }) 
+    body: JSON.stringify({ action: "bindAccount", lineUid: userLineUid, phone: rawPhone }) 
   })
   .then(res => res.json())
   .then(data => {
@@ -96,7 +97,6 @@ function renderDashboard(data) {
   currentJwId = data.profile.id;
   currentMemberName = data.profile.name; 
   
-  // 【重要】將會員資料存入暫存，供報到頁面讀取
   sessionStorage.setItem("jwProfile", JSON.stringify(data.profile));
   
   document.getElementById("displayName").textContent = data.profile.name + "，您好！";
@@ -129,21 +129,14 @@ function renderDashboard(data) {
   let bookingHtml = "";
   const allUpcoming = [];
   
-  if (data.confirmedBookings) {
-    allUpcoming.push(...data.confirmedBookings);
-  }
-  if (data.pendingBookings) {
-    allUpcoming.push(...data.pendingBookings);
-  }
-  if (data.cancelledBookings) {
-    allUpcoming.push(...data.cancelledBookings); 
-  }
+  if (data.confirmedBookings) allUpcoming.push(...data.confirmedBookings);
+  if (data.pendingBookings) allUpcoming.push(...data.pendingBookings);
+  if (data.cancelledBookings) allUpcoming.push(...data.cancelledBookings); 
   
   if (allUpcoming.length > 0) {
     allUpcoming.forEach(b => {
       let lightColor = b.light; 
       let statusHtml = `<span class="status-text ${lightColor}">${getIcon(lightColor)} ${b.status}</span>`;
-      
       let extraInfo = "";
       
       if (lightColor === "green" || lightColor === "blue") {
@@ -183,25 +176,9 @@ function renderDashboard(data) {
   if (data.history && data.history.length > 0) {
     data.history.forEach(record => {
       let imgsHtml = "";
-      
-      if (record.checkInImg) {
-         imgsHtml += `
-           <p style="margin-bottom:5px; font-size:13px; font-weight:bold; color:var(--primary-color);">📋 當次報到紀錄表：</p>
-           <img src="${record.checkInImg}" class="img-preview" alt="報到表單">
-         `;
-      }
-      if (record.beforeImg) {
-         imgsHtml += `
-           <p style="margin-bottom:5px; margin-top:10px; font-size:13px;">調理前：</p>
-           <img src="${record.beforeImg}" class="img-preview">
-         `;
-      }
-      if (record.afterImg) {
-         imgsHtml += `
-           <p style="margin-bottom:5px; margin-top:10px; font-size:13px;">調理後：</p>
-           <img src="${record.afterImg}" class="img-preview">
-         `;
-      }
+      if (record.checkInImg) imgsHtml += `<p style="margin-bottom:5px; font-size:13px; font-weight:bold; color:var(--primary-color);">📋 當次報到紀錄表：</p><img src="${record.checkInImg}" class="img-preview" alt="報到表單">`;
+      if (record.beforeImg) imgsHtml += `<p style="margin-bottom:5px; margin-top:10px; font-size:13px;">調理前：</p><img src="${record.beforeImg}" class="img-preview">`;
+      if (record.afterImg) imgsHtml += `<p style="margin-bottom:5px; margin-top:10px; font-size:13px;">調理後：</p><img src="${record.afterImg}" class="img-preview">`;
 
       historyContainer.innerHTML += `
         <div class="record-item">
@@ -268,6 +245,7 @@ function changeBookingHandler(timeStr, serviceStr, actionType) {
           Swal.showValidationMessage('請完整選擇新的日期與時間喔！'); 
           return false; 
         }
+        // 【時間寫入防呆】：強制拋轉 YYYY-MM-DD HH:mm 格式
         return `${date} ${time}`;
       }
     }).then((result) => { 
@@ -381,6 +359,7 @@ function submitBooking() {
     return; 
   }
 
+  // 【時間寫入防呆】：強制拋轉 YYYY-MM-DD HH:mm 格式
   const fullTime1 = `${date1} ${time1}`;
   const fullTime2 = (date2 && time2) ? `${date2} ${time2}` : "";
   const fullTime3 = (date3 && time3) ? `${date3} ${time3}` : "";
