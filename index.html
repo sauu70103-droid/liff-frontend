@@ -135,6 +135,13 @@
       </div>
     </div>
   </div>
+
+  <!-- 【新增】：全域圖片放大燈箱 -->
+  <div id="globalLightbox" class="lightbox-overlay" onclick="closeLightbox()">
+    <button class="lightbox-close" onclick="closeLightbox()">&times;</button>
+    <img id="lightboxImage" class="lightbox-img" src="" alt="放大檢視" onclick="event.stopPropagation()">
+  </div>
+
   <script src="app.js"></script>
 </body>
 </html>
