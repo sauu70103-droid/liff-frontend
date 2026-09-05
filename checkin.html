@@ -3,26 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>錦葳 - 即時調理資料產生</title>
+  <title>錦葳 - 報到系統</title>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <link rel="stylesheet" href="style.css">
   <style>
-    .signature-container { 
-      border: 1px solid var(--border-color); 
-      border-radius: 8px; 
-      background: #fff; 
-      margin-bottom: 10px; 
-      overflow: hidden; 
-      touch-action: none; 
-    }
-    
-    #signaturePad { 
-      width: 100%; 
-      height: 150px; 
-      display: block; 
-      cursor: crosshair; 
-    }
-
     .preview-container {
       width: 100%;
       min-height: 100px;
@@ -85,7 +69,7 @@
       background: #fff; 
     }
     
-    #bodyMapCanvas { 
+    #bodyMapCanvas, #signaturePad { 
       position: absolute; 
       top: 0; 
       left: 0; 
@@ -102,6 +86,16 @@
     .modal-actions button {
       margin-bottom: 0;
     }
+
+    /* 免責聲明紅字樣式 */
+    .disclaimer-text {
+      color: #d9534f;
+      font-size: 13px;
+      margin-top: -10px;
+      margin-bottom: 20px;
+      line-height: 1.4;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
@@ -111,7 +105,7 @@
     </div>
     
     <div class="card">
-      <h3>自助報到與同意書</h3>
+      <h3>報到</h3>
       <p id="bookingInfo" style="font-size:14px; color:var(--text-muted);"></p>
 
       <hr style="border: 0; border-top: 1px dashed var(--border-color); margin: 20px 0;">
@@ -131,7 +125,7 @@
 
       <p style="font-size: 14px; font-weight: bold; color: var(--primary-color);">【今日調理需求】</p>
 
-      <label>4. 人體圖註記 (請點擊下方開啟畫板，圈出須加強部位)</label>
+      <label>4. 人體圖註記 (請點擊下方開啟畫板，圈選本次欲加強之處)</label>
       <div class="preview-container" id="bodyMapPreviewBtn" onclick="openDrawingModal()">
         <span class="preview-text" id="previewText">點擊開啟人體圖畫板 ✍️</span>
         <img id="bodyMapResultImg" alt="人體圖預覽">
@@ -146,25 +140,45 @@
       <hr style="border: 0; border-top: 1px dashed var(--border-color); margin: 20px 0;">
       
       <label>本人同意並確認上述填寫狀況屬實：(請簽名)</label>
-      <div class="signature-container">
-        <canvas id="signaturePad"></canvas>
+      
+      <!-- 放大版簽名入口 -->
+      <div class="preview-container" id="signaturePreviewBtn" onclick="openSignatureModal()">
+        <span class="preview-text" id="sigPreviewText">點擊開啟全螢幕簽名板 ✍️</span>
+        <img id="signatureResultImg" alt="簽名預覽" style="background:#fff; border-radius:8px;">
       </div>
-      <button class="btn-small btn-secondary" onclick="clearSignature()" style="margin-bottom: 15px;">清除重簽</button>
+      
+      <!-- 法律免責宣告 -->
+      <p class="disclaimer-text">請如實填寫開刀或近三年內是否有外力撞擊、車禍等情況，若因未如實告知導致之問題，應由填寫簽名之本人占主要之責任，店家已盡告知及確認之責任</p>
       
       <button onclick="submitCheckIn()">確認送出報到資料</button>
       <button class="btn-secondary" onclick="window.history.back()">返回上一頁</button>
     </div>
   </div>
 
+  <!-- 人體圖 Modal -->
   <div class="modal-overlay" id="drawingModal">
     <div class="modal-content">
-      <h3 style="text-align: center; margin-bottom: 10px;">請圈選須加強或避開之處</h3>
-      <div class="canvas-wrapper">
+      <h3 style="text-align: center; margin-bottom: 10px;">請圈選本次欲加強之處</h3>
+      <div class="canvas-wrapper" style="height: 60vh; max-height: 500px;">
         <canvas id="bodyMapCanvas"></canvas>
       </div>
       <div class="modal-actions">
         <button class="btn-secondary" onclick="clearBodyMap()">清除重畫</button>
-        <button onclick="closeAndSaveDrawing()">完成圈選</button>
+        <button onclick="closeAndSaveDrawing()">確認完成</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 放大版簽名 Modal -->
+  <div class="modal-overlay" id="signatureModal">
+    <div class="modal-content">
+      <h3 style="text-align: center; margin-bottom: 10px;">請在下方空白處簽名</h3>
+      <div class="canvas-wrapper" style="height: 40vh; max-height: 300px;">
+        <canvas id="signaturePad"></canvas>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-secondary" onclick="clearSignature()">清除重簽</button>
+        <button onclick="closeAndSaveSignature()">確認簽名</button>
       </div>
     </div>
   </div>
@@ -172,12 +186,10 @@
   <script>
     const GAS_URL = "https://script.google.com/macros/s/AKfycbwApGqvuUMuERNtrlEr1NHSKxooH_fD9XF_t1v-iKg_gDJ0kRBqnrKodhjVlIWa-u16sw/exec";
     
-    // 解析網址上的預約資訊
     const urlParams = new URLSearchParams(window.location.search);
     const bookingTime = urlParams.get('time');
     const serviceType = urlParams.get('service');
     
-    // 從暫存提取會員資料
     const profileJson = sessionStorage.getItem("jwProfile");
     if (!profileJson) {
       alert("讀取會員資料失敗，請重新登入！");
@@ -194,15 +206,13 @@
     let sigPad;
     let bodyImg;
     let isBodyMapDrawn = false; 
+    let isSignatureDrawn = false;
 
     window.onload = function() {
-      // 自動帶入半永久資料
       document.getElementById("chkOccupation").value = profile.occupation || "";
       document.getElementById("chkMedicalHistory").value = profile.medHistory || "";
       document.getElementById("chkAvoidAreas").value = profile.avoidAreas || "";
 
-      sigPad = setupCanvas('signaturePad', false);
-      
       bodyImg = new Image();
       bodyImg.src = 'body_map.jpg'; 
     };
@@ -213,7 +223,7 @@
       
       const rect = canvas.getBoundingClientRect();
       canvas.width = rect.width || 400; 
-      canvas.height = rect.height || (isImageBg ? 400 : 150);
+      canvas.height = rect.height || (isImageBg ? 400 : 200);
       
       ctx.lineWidth = 3;
       ctx.lineCap = 'round';
@@ -263,19 +273,13 @@
       return { canvas, ctx };
     }
 
+    // --- 人體圖邏輯 ---
     function openDrawingModal() {
-      const modal = document.getElementById('drawingModal');
-      modal.style.display = 'flex';
-      
+      document.getElementById('drawingModal').style.display = 'flex';
       document.body.style.overflow = 'hidden';
 
-      if (!bodyMap) {
-        bodyMap = setupCanvas('bodyMapCanvas', true);
-      }
-      
-      if (!isBodyMapDrawn) {
-        drawBodyMapBg();
-      }
+      if (!bodyMap) bodyMap = setupCanvas('bodyMapCanvas', true);
+      if (!isBodyMapDrawn) drawBodyMapBg();
     }
 
     function drawBodyMapBg() {
@@ -291,22 +295,43 @@
     }
     
     function closeAndSaveDrawing() {
-      const modal = document.getElementById('drawingModal');
-      modal.style.display = 'none';
+      document.getElementById('drawingModal').style.display = 'none';
       document.body.style.overflow = 'auto'; 
 
       const previewImg = document.getElementById('bodyMapResultImg');
-      const previewText = document.getElementById('previewText');
-      
       previewImg.src = bodyMap.canvas.toDataURL('image/jpeg', 0.8);
       previewImg.style.display = 'block';
-      previewText.style.display = 'none'; 
+      document.getElementById('previewText').style.display = 'none'; 
       
       isBodyMapDrawn = true;
     }
 
+    // --- 簽名板邏輯 ---
+    function openSignatureModal() {
+      document.getElementById('signatureModal').style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+      if (!sigPad) sigPad = setupCanvas('signaturePad', false);
+    }
+
     function clearSignature() { 
       sigPad.ctx.clearRect(0, 0, sigPad.canvas.width, sigPad.canvas.height); 
+      isSignatureDrawn = false;
+    }
+
+    function closeAndSaveSignature() {
+      if (isCanvasBlank(sigPad.canvas)) {
+        Swal.fire('提示', '請在上方空白處簽名確認！', 'warning');
+        return;
+      }
+      document.getElementById('signatureModal').style.display = 'none';
+      document.body.style.overflow = 'auto';
+
+      const sigImg = document.getElementById('signatureResultImg');
+      sigImg.src = sigPad.canvas.toDataURL('image/png');
+      sigImg.style.display = 'block';
+      document.getElementById('sigPreviewText').style.display = 'none';
+      
+      isSignatureDrawn = true;
     }
 
     function isCanvasBlank(canvas) {
@@ -320,6 +345,7 @@
       return Math.random().toString(36).substring(2, 10).toUpperCase(); 
     }
 
+    // --- 最終合成送出 ---
     function submitCheckIn() {
       const occupation = document.getElementById("chkOccupation").value.trim();
       const medHistory = document.getElementById("chkMedicalHistory").value.trim();
@@ -331,14 +357,12 @@
         Swal.fire('提示', '請點擊開啟畫板，在人體圖上進行圈選標記！', 'warning'); 
         return; 
       }
-      
       if (!medHistory || !recentAcc || !avoidAreas || !focusAreas) { 
         Swal.fire('提示', '請確實填寫文字欄位，若無該狀況請手動輸入「無」喔！', 'warning'); 
         return; 
       }
-      
-      if (isCanvasBlank(sigPad.canvas)) { 
-        Swal.fire('提示', '請在下方空白處簽名確認！', 'warning'); 
+      if (!isSignatureDrawn) { 
+        Swal.fire('提示', '請點擊開啟簽名板，並完成簽名確認！', 'warning'); 
         return; 
       }
 
@@ -361,7 +385,7 @@
       
       fCtx.fillStyle = '#333333'; 
       fCtx.font = 'bold 32px Arial'; 
-      fCtx.fillText('錦葳 自助報到與同意書', 40, 60);
+      fCtx.fillText('錦葳 報到紀錄', 40, 60);
       
       fCtx.font = '24px Arial';
       fCtx.fillText(`會員編號：${memberId}`, 40, 120);
