@@ -62,7 +62,6 @@ function getUserDataAndLogin() {
 }
 
 function bindAccount() {
-  // 嚴格清洗非數字字元
   let rawPhone = document.getElementById("phoneInput").value.replace(/\D/g, '');
   
   if(rawPhone.length !== 10 || !rawPhone.startsWith('09')) { 
@@ -177,7 +176,6 @@ function renderDashboard(data) {
     data.history.forEach(record => {
       let contentHtml = "";
       
-      // 純客觀資料呈現：本次加強部位 (會員自填)
       if (record.focusAreas) {
         contentHtml += `
           <div style="margin: 8px 0; padding: 8px; background: var(--secondary-bg); border-radius: 6px; font-size: 14px;">
@@ -186,7 +184,6 @@ function renderDashboard(data) {
         `;
       }
       
-      // 視覺化呈現：點擊觸發燈箱 openLightbox()
       if (record.checkInImg) {
          contentHtml += `
            <p style="margin-bottom:5px; font-size:13px; font-weight:bold; color:var(--primary-color);">📋 當次報到紀錄表：</p>
@@ -445,9 +442,6 @@ function switchTab(tabIndex) {
   document.getElementById('btnTab' + tabIndex).classList.add('active');
 }
 
-// ----------------------------------------------------------------------------
-// 🔍 燈箱控制邏輯 (Lightbox)
-// ----------------------------------------------------------------------------
 function openLightbox(imageSrc) {
   const overlay = document.getElementById("globalLightbox");
   const imgElement = document.getElementById("lightboxImage");
