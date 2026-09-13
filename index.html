@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>錦葳專屬會員系統</title>
+  <title>錦葳健康美學中心 - 專屬會員系統</title>
   <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <link rel="stylesheet" href="style.css">
@@ -11,7 +11,8 @@
 <body>
   <div class="container">
     <div class="logo-container">
-      <img src="./logo.png" alt="錦葳">
+      <!-- 品牌正名對標 -->
+      <img src="./logo.png" alt="錦葳健康美學中心">
     </div>
     
     <div id="loadingMsg" class="card" style="text-align:center;">
@@ -25,11 +26,35 @@
       <button onclick="bindAccount()">確認綁定</button>
     </div>
 
+    <!-- 【V2.0 擴充】：遠端代付簽名授權中心 -->
+    <div id="remoteAuthSection" class="card hidden">
+      <h3 style="text-align: center; color: var(--primary-color);">遠端代付簽名授權</h3>
+      <hr style="border: 0; border-top: 1px dashed var(--border-color); margin: 15px 0;">
+      
+      <div class="info-row"><div class="info-label">被代付人</div><div class="info-value" id="authConsumerName" style="font-weight: bold;"></div></div>
+      <div class="info-row"><div class="info-label">消費項目</div><div class="info-value" id="authItem"></div></div>
+      <div class="info-row"><div class="info-label">扣除點數</div><div class="info-value" id="authPoints" style="color: #D35400; font-weight: bold;"></div></div>
+      <div class="info-row"><div class="info-label">授權後餘額</div><div class="info-value" id="authRemaining"></div></div>
+      
+      <hr style="border: 0; border-top: 1px dashed var(--border-color); margin: 15px 0;">
+      
+      <label>本人同意並確認授權上述點數扣款：(請於下方空白處簽名)</label>
+      <div class="canvas-wrapper" id="authSignatureWrapper" style="height: 35vh; max-height: 300px;">
+        <canvas id="authSignaturePad"></canvas>
+      </div>
+      <div style="display: flex; gap: 10px;">
+        <button class="btn-secondary" onclick="clearRemoteSignature()">清除重簽</button>
+        <button onclick="submitRemoteAuth()">確認授權扣款</button>
+      </div>
+    </div>
+
+    <!-- 主系統區塊 -->
     <div id="mainSystem" class="hidden">
       <div class="tabs">
         <button class="tab-btn active" id="btnTab1" onclick="switchTab(1)">基本資料</button>
         <button class="tab-btn" id="btnTab2" onclick="switchTab(2)">調理紀錄</button>
         <button class="tab-btn" id="btnTab3" onclick="switchTab(3)">預約專區</button>
+        <button class="tab-btn" id="btnTab4" onclick="switchTab(4); loadWalletDashboard();">點數錢包</button>
       </div>
 
       <div id="tab1" class="tab-content">
@@ -54,7 +79,6 @@
           </div>
           
           <button id="toggleEditBtn" class="btn-secondary" onclick="toggleEditForm()" style="margin-top: 15px; margin-bottom: 15px;">修改個人資料</button>
-          
           <button class="btn-outline" onclick="goToGeneralCheckIn()" style="margin-bottom: 15px; width: 100%; border-width: 2px;">📝 進入報到系統</button>
 
           <hr style="border: 0; border-top: 1px dashed var(--border-color); margin: 15px 0;">
@@ -66,13 +90,10 @@
           <h3>修改個人資料</h3>
           <label>姓名</label>
           <input type="text" id="editName">
-          
           <label>手機號碼</label>
           <input type="tel" id="editPhone" maxlength="10">
-          
           <label>生日</label>
           <input type="date" id="editBirthday">
-          
           <label>性別</label>
           <select id="editGender">
             <option value="">請選擇</option>
@@ -80,7 +101,6 @@
             <option value="女">女</option>
             <option value="其他">其他</option>
           </select>
-          
           <button onclick="updateProfile()">儲存修改</button>
           <button class="btn-secondary" onclick="toggleEditForm()">取消修改</button>
         </div>
@@ -97,38 +117,47 @@
         <div class="card">
           <h3>預約調理</h3>
           <label>方案</label>
-          <!-- 【核心重構】：廢除舊版 9 大方案，精準對標全新的 4 大核心項目 -->
           <select id="serviceType">
             <option value="無痛滑罐放鬆 (快速修復)">無痛滑罐放鬆 (快速修復)</option>
             <option value="單部位舒緩修復 (精準調理)">單部位舒緩修復 (精準調理)</option>
             <option value="重點平衡調理 (半身放鬆+全身傳統整復)">重點平衡調理 (半身放鬆+全身傳統整復)</option>
             <option value="全身深度重整 (全身放鬆+全身傳統整復)">全身深度重整 (全身放鬆+全身傳統整復)</option>
           </select>
-
           <label>期望時間 1 (必填)</label>
-          <div class="datetime-group">
-            <input type="date" id="date1">
-            <select id="time1"></select>
-          </div>
-          
+          <div class="datetime-group"><input type="date" id="date1"><select id="time1"></select></div>
           <label>期望時間 2 (選填)</label>
-          <div class="datetime-group">
-            <input type="date" id="date2">
-            <select id="time2"></select>
-          </div>
-          
+          <div class="datetime-group"><input type="date" id="date2"><select id="time2"></select></div>
           <label>期望時間 3 (選填)</label>
-          <div class="datetime-group">
-            <input type="date" id="date3">
-            <select id="time3"></select>
-          </div>
-          
+          <div class="datetime-group"><input type="date" id="date3"><select id="time3"></select></div>
           <label>狀況描述與備註 (選填)</label>
           <textarea id="bookingRemarks" rows="3" placeholder="請簡單描述狀況..."></textarea>
-          
           <button onclick="submitBooking()">送出預約申請</button>
         </div>
       </div>
+
+      <!-- 【V2.0 擴充】：點數錢包與透明存摺 -->
+      <div id="tab4" class="tab-content hidden">
+        <div class="card">
+          <h3 style="margin-bottom: 5px;">我的數位點數錢包</h3>
+          <p style="font-size: 13px; color: var(--text-muted); margin-top: 0;">點數計價基準：1 點 = 1 元新台幣</p>
+          <div style="text-align: center; margin: 20px 0;">
+            <div style="font-size: 14px; color: var(--text-muted);">總餘額</div>
+            <div id="walletTotal" style="font-size: 36px; font-weight: bold; color: var(--primary-color);">...</div>
+          </div>
+          <hr style="border: 0; border-top: 1px dashed var(--border-color); margin: 15px 0;">
+          <div class="info-row"><div class="info-label" style="width: 100px;">A類 儲值本金</div><div class="info-value" id="walletClassA" style="text-align: right;">...</div></div>
+          <div class="info-row"><div class="info-label" style="width: 100px;">B類 待解鎖贈點</div><div class="info-value" id="walletClassB" style="text-align: right; color: var(--text-muted);">...</div></div>
+          <div class="info-row"><div class="info-label" style="width: 100px;">C類 活動贈點</div><div class="info-value" id="walletClassC" style="text-align: right; color: var(--green-light);">...</div></div>
+          <div id="walletExpiryWarning" class="hidden" style="margin-top: 10px; padding: 10px; background: #FCF3F2; border: 1px solid #F5C6CB; border-radius: 6px; font-size: 13px; color: #d9534f; text-align: center; font-weight: bold;">
+            <!-- 警示文字動態插入 -->
+          </div>
+        </div>
+        <div class="card">
+          <h3>透明存摺明細</h3>
+          <div id="passbookList"></div>
+        </div>
+      </div>
+
     </div>
   </div>
 
