@@ -297,7 +297,7 @@ button:hover {
   font-weight: bold;
 }
 
-/* 彈出式畫板與簽名板 Modal */
+/* 彈出式 Modal (畫板與簽名授權) */
 .modal-overlay {
   position: fixed;
   top: 0; 
@@ -326,7 +326,7 @@ button:hover {
 .canvas-wrapper { 
   position: relative; 
   width: 100%; 
-  height: 60vh; /* 調整為視窗高度佔比，方便長輩簽名與畫圖 */
+  height: 60vh;
   max-height: 500px;
   border: 1px solid var(--border-color); 
   border-radius: 8px; 
@@ -336,7 +336,7 @@ button:hover {
   background: #fff; 
 }
 
-#bodyMapCanvas, #signaturePad { 
+#bodyMapCanvas, #signaturePad, #remoteSignaturePad { 
   position: absolute; 
   top: 0; 
   left: 0; 
@@ -352,4 +352,29 @@ button:hover {
 
 .modal-actions button {
   margin-bottom: 0;
+}
+
+/* 免責與警示紅字 */
+.disclaimer-text {
+  color: #d9534f;
+  font-size: 13px;
+  margin-top: -10px;
+  margin-bottom: 20px;
+  line-height: 1.4;
+  font-weight: bold;
+}
+
+/* 【V2.0】：點數錢包與存摺專屬樣式 */
+.wallet-card {
+  background: linear-gradient(135deg, #ffffff 0%, #faf8f5 100%);
+  border: 2px solid var(--primary-color);
+}
+
+.passbook-item {
+  border-bottom: 1px solid var(--border-color);
+  padding: 10px 0;
+}
+
+.passbook-item:last-child {
+  border-bottom: none;
 }
