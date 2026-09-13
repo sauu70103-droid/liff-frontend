@@ -4,9 +4,16 @@ const LIFF_ID = "2011305352-GK5jDrbh";
 let userLineUid = "";
 let currentJwId = "";
 let currentMemberName = "";
+let remoteToken = null;
+let currentWalletTotal = 0;
+let remoteSignPad = null;
 
 window.onload = function() {
   setupBookingInputs();
+  
+  // 檢查是否為遠端授權連結
+  const urlParams = new URLSearchParams(window.location.search);
+  remoteToken = urlParams.get('token');
   
   liff.init({ liffId: LIFF_ID }).then(() => {
     if (!liff.isLoggedIn()) {
@@ -27,7 +34,6 @@ function setupBookingInputs() {
   document.getElementById("date3").min = todayString;
   
   let optionsHtml = '<option value="">時間</option>';
-  
   for (let h = 9; h <= 16; h++) {
     let hour = h.toString().padStart(2, '0');
     optionsHtml += `<option value="${hour}:00">${hour}:00</option>`;
@@ -49,10 +55,20 @@ function getUserDataAndLogin() {
     })
     .then(res => res.json())
     .then(data => {
-      document.getElementById("loadingMsg").classList.add("hidden");
       if (data.status === "success") {
-        renderDashboard(data); 
+        currentJwId = data.profile.id;
+        currentMemberName = data.profile.name; 
+        
+        // 若為遠端授權模式，攔截並直接彈出授權視窗
+        if (remoteToken) {
+          document.getElementById("loadingMsg").classList.add("hidden");
+          handleRemoteSignToken(remoteToken);
+        } else {
+          document.getElementById("loadingMsg").classList.add("hidden");
+          renderDashboard(data); 
+        }
       } else {
+        document.getElementById("loadingMsg").classList.add("hidden");
         document.getElementById("bindSection").classList.remove("hidden");
       }
     }).catch(err => {
@@ -63,7 +79,6 @@ function getUserDataAndLogin() {
 
 function bindAccount() {
   let rawPhone = document.getElementById("phoneInput").value.replace(/\D/g, '');
-  
   if(rawPhone.length !== 10 || !rawPhone.startsWith('09')) { 
     Swal.fire('提示', '請輸入完整的 10 碼手機號碼 (09開頭)！', 'warning'); 
     return; 
@@ -81,8 +96,14 @@ function bindAccount() {
   .then(data => {
     document.getElementById("loadingMsg").classList.add("hidden");
     if (data.status === "success") { 
-      Swal.fire('成功', '綁定成功！歡迎回來', 'success'); 
-      renderDashboard(data); 
+      currentJwId = data.profile.id;
+      currentMemberName = data.profile.name;
+      Swal.fire('成功', '綁定成功！歡迎回家', 'success'); 
+      if (remoteToken) {
+        handleRemoteSignToken(remoteToken);
+      } else {
+        renderDashboard(data); 
+      }
     } else { 
       Swal.fire('失敗', data.message, 'error'); 
       document.getElementById("bindSection").classList.remove("hidden"); 
@@ -92,13 +113,8 @@ function bindAccount() {
 
 function renderDashboard(data) {
   document.getElementById("mainSystem").classList.remove("hidden");
-  
-  currentJwId = data.profile.id;
-  currentMemberName = data.profile.name; 
-  
   sessionStorage.setItem("jwProfile", JSON.stringify(data.profile));
   
-  // 【首頁問候語優化】：變更為更具歸屬感的問候
   document.getElementById("displayName").textContent = data.profile.name + "，歡迎回家！";
   document.getElementById("userJwId").textContent = data.profile.id;
   document.getElementById("displayTier").textContent = data.profile.tier || "一般會員";
@@ -108,9 +124,7 @@ function renderDashboard(data) {
   
   if(data.profile.birthday) {
     let d = new Date(data.profile.birthday); 
-    if(!isNaN(d)) {
-      document.getElementById("editBirthday").value = d.toISOString().split('T')[0];
-    }
+    if(!isNaN(d)) document.getElementById("editBirthday").value = d.toISOString().split('T')[0];
   }
   
   document.getElementById("editName").value = (data.profile.name && data.profile.name.includes("新會員")) ? "" : (data.profile.name || "");
@@ -139,19 +153,10 @@ function renderDashboard(data) {
       let statusHtml = `<span class="status-text ${lightColor}">${getIcon(lightColor)} ${b.status}</span>`;
       let extraInfo = "";
       
-      if (lightColor === "green" || lightColor === "blue") {
-        extraInfo = `安排師傅：${b.therapist}`;
-      } else if (lightColor === "yellow") {
-        if (b.status === "處理改期要求中" && b.newTime) {
-          extraInfo = `👉 期望新時間：<strong style="color:var(--yellow-light);">${b.newTime}</strong>`;
-        } else {
-          extraInfo = `請等候店鋪回覆確認`;
-        }
-      } else if (lightColor === "red") {
-        extraInfo = `此時段無空檔，請重新預約或洽客服`;
-      }
+      if (lightColor === "green" || lightColor === "blue") extraInfo = `安排師傅：${b.therapist}`;
+      else if (lightColor === "yellow") extraInfo = (b.status === "處理改期要求中" && b.newTime) ? `👉 期望新時間：<strong style="color:var(--yellow-light);">${b.newTime}</strong>` : `請等候中心回覆確認`;
+      else if (lightColor === "red") extraInfo = `此時段無空檔，請重新預約或洽客服`;
 
-      // 【報到按鈕更名】：將按鈕文字精簡為「我要報到」
       bookingHtml += `
         <div class="booking-box ${lightColor}">
           <div class="title">${b.time} - ${b.service}</div>
@@ -168,7 +173,6 @@ function renderDashboard(data) {
   } else {
     bookingHtml = "<p style='color: var(--text-muted); font-size: 14px;'>目前無未來的預約紀錄。</p>";
   }
-  
   bookingContainer.innerHTML = bookingHtml;
 
   const historyContainer = document.getElementById("historyList");
@@ -177,33 +181,12 @@ function renderDashboard(data) {
   if (data.history && data.history.length > 0) {
     data.history.forEach(record => {
       let contentHtml = "";
-      
       if (record.focusAreas) {
-        contentHtml += `
-          <div style="margin: 8px 0; padding: 8px; background: var(--secondary-bg); border-radius: 6px; font-size: 14px;">
-            <strong style="color:var(--primary-color);">📌 會員填寫重點：</strong><br>${record.focusAreas}
-          </div>
-        `;
+        contentHtml += `<div style="margin: 8px 0; padding: 8px; background: var(--secondary-bg); border-radius: 6px; font-size: 14px;"><strong style="color:var(--primary-color);">📌 會員填寫重點：</strong><br>${record.focusAreas}</div>`;
       }
-      
-      if (record.checkInImg) {
-         contentHtml += `
-           <p style="margin-bottom:5px; font-size:13px; font-weight:bold; color:var(--primary-color);">📋 當次報到紀錄表：</p>
-           <img src="${record.checkInImg}" class="img-preview" alt="報到表單" onclick="openLightbox(this.src)">
-         `;
-      }
-      if (record.beforeImg) {
-         contentHtml += `
-           <p style="margin-bottom:5px; margin-top:10px; font-size:13px;">調理前：</p>
-           <img src="${record.beforeImg}" class="img-preview" alt="調理前照片" onclick="openLightbox(this.src)">
-         `;
-      }
-      if (record.afterImg) {
-         contentHtml += `
-           <p style="margin-bottom:5px; margin-top:10px; font-size:13px;">調理後：</p>
-           <img src="${record.afterImg}" class="img-preview" alt="調理後照片" onclick="openLightbox(this.src)">
-         `;
-      }
+      if (record.checkInImg) contentHtml += `<p style="margin-bottom:5px; font-size:13px; font-weight:bold; color:var(--primary-color);">📋 當次報到紀錄表：</p><img src="${record.checkInImg}" class="img-preview" alt="報到表單" onclick="openLightbox(this.src)">`;
+      if (record.beforeImg) contentHtml += `<p style="margin-bottom:5px; margin-top:10px; font-size:13px;">調理前：</p><img src="${record.beforeImg}" class="img-preview" alt="調理前照片" onclick="openLightbox(this.src)">`;
+      if (record.afterImg) contentHtml += `<p style="margin-bottom:5px; margin-top:10px; font-size:13px;">調理後：</p><img src="${record.afterImg}" class="img-preview" alt="調理後照片" onclick="openLightbox(this.src)">`;
 
       historyContainer.innerHTML += `
         <div class="record-item">
@@ -225,13 +208,8 @@ function getIcon(light) {
   return '⏳';
 }
 
-function goToGeneralCheckIn() {
-  window.location.href = `checkin.html?time=未指定預約&service=一般報到`;
-}
-
-function goToCheckIn(timeStr, serviceStr) {
-  window.location.href = `checkin.html?time=${timeStr}&service=${serviceStr}`;
-}
+function goToGeneralCheckIn() { window.location.href = `checkin.html?time=未指定預約&service=一般報到`; }
+function goToCheckIn(timeStr, serviceStr) { window.location.href = `checkin.html?time=${timeStr}&service=${serviceStr}`; }
 
 function changeBookingHandler(timeStr, serviceStr, actionType) {
   if (actionType === "modify") {
@@ -255,84 +233,40 @@ function changeBookingHandler(timeStr, serviceStr, actionType) {
           </select>
         </div>
       `,
-      showCancelButton: true, 
-      confirmButtonText: '送出改期要求', 
-      cancelButtonText: '返回', 
-      confirmButtonColor: '#B9936C',
-      didOpen: () => { 
-        document.getElementById('swal-date').min = new Date(new Date().getTime() - (new Date().getTimezoneOffset() * 60000)).toISOString().split('T')[0]; 
-      },
+      showCancelButton: true, confirmButtonText: '送出改期要求', cancelButtonText: '返回', confirmButtonColor: '#B9936C',
+      didOpen: () => { document.getElementById('swal-date').min = new Date(new Date().getTime() - (new Date().getTimezoneOffset() * 60000)).toISOString().split('T')[0]; },
       preConfirm: () => {
         const date = document.getElementById('swal-date').value;
         const time = document.getElementById('swal-time').value;
-        
-        if (!date || !time) { 
-          Swal.showValidationMessage('請完整選擇新的日期與時間喔！'); 
-          return false; 
-        }
+        if (!date || !time) { Swal.showValidationMessage('請完整選擇新的日期與時間喔！'); return false; }
         return `${date} ${time}`;
       }
-    }).then((result) => { 
-      if (result.isConfirmed) { 
-        sendChangeRequest(timeStr, serviceStr, actionType, result.value); 
-      } 
-    });
+    }).then((result) => { if (result.isConfirmed) sendChangeRequest(timeStr, serviceStr, actionType, result.value); });
   } else {
     Swal.fire({
-      title: '確認取消預約？', 
-      text: `原預約：${timeStr} (${serviceStr})`, 
-      icon: 'warning', 
-      input: 'text', 
-      inputPlaceholder: '可簡單描述取消原因 (選填)',
-      showCancelButton: true, 
-      confirmButtonText: '確定取消', 
-      cancelButtonText: '返回', 
-      confirmButtonColor: '#d33'
-    }).then((result) => { 
-      if (result.isConfirmed) { 
-        sendChangeRequest(timeStr, serviceStr, actionType, result.value || "無提供原因"); 
-      } 
-    });
+      title: '確認取消預約？', text: `原預約：${timeStr} (${serviceStr})`, icon: 'warning', input: 'text', inputPlaceholder: '可簡單描述取消原因 (選填)',
+      showCancelButton: true, confirmButtonText: '確定取消', cancelButtonText: '返回', confirmButtonColor: '#d33'
+    }).then((result) => { if (result.isConfirmed) sendChangeRequest(timeStr, serviceStr, actionType, result.value || "無提供原因"); });
   }
 }
 
 function sendChangeRequest(timeStr, serviceStr, actionType, userMessage) {
   document.getElementById("loadingMsg").classList.remove("hidden"); 
   document.getElementById("mainSystem").classList.add("hidden");
-  
-  fetch(GAS_URL, { 
-    method: "POST", 
-    body: JSON.stringify({ 
-      action: "changeBooking", 
-      memberId: currentJwId, 
-      bookingTime: timeStr, 
-      serviceType: serviceStr, 
-      changeType: actionType, 
-      userMessage: userMessage 
-    }) 
-  })
+  fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: "changeBooking", memberId: currentJwId, bookingTime: timeStr, serviceType: serviceType, changeType: actionType, userMessage: userMessage }) })
   .then(res => res.json())
   .then(data => { 
     getUserDataAndLogin(); 
-    Swal.fire('已送出', '系統已同步更新您的需求，請稍待店務人員回覆😌', 'success'); 
+    Swal.fire('已送出', '系統已同步更新您的需求，請稍待中心回覆😌', 'success'); 
   })
-  .catch(err => { 
-    Swal.fire('錯誤', '網路錯誤，請稍後再試。', 'error'); 
-    getUserDataAndLogin(); 
-  });
+  .catch(err => { Swal.fire('錯誤', '網路錯誤，請稍後再試。', 'error'); getUserDataAndLogin(); });
 }
 
 function toggleEditForm() {
   const editCard = document.getElementById("profileEditCard");
   const toggleBtn = document.getElementById("toggleEditBtn");
-  
-  if (editCard.classList.contains("hidden")) { 
-    editCard.classList.remove("hidden"); 
-    toggleBtn.textContent = "隱藏修改表單"; 
-  } else { 
-    editCard.classList.add("hidden"); 
-    toggleBtn.textContent = "修改個人資料"; 
-  }
+  if (editCard.classList.contains("hidden")) { editCard.classList.remove("hidden"); toggleBtn.textContent = "隱藏修改表單"; } 
+  else { editCard.classList.add("hidden"); toggleBtn.textContent = "修改個人資料"; }
 }
 
 function updateProfile() {
@@ -340,106 +274,42 @@ function updateProfile() {
   const phone = document.getElementById("editPhone").value;
   const birthday = document.getElementById("editBirthday").value;
   const gender = document.getElementById("editGender").value;
+  if (!name.trim()) { Swal.fire('提示', '請輸入您的姓名！', 'warning'); return; }
   
-  if (!name.trim()) { 
-    Swal.fire('提示', '請輸入您的姓名！', 'warning'); 
-    return; 
-  }
-  
-  fetch(GAS_URL, { 
-    method: "POST", 
-    body: JSON.stringify({ 
-      action: "updateProfile", 
-      memberId: currentJwId, 
-      name: name, 
-      phone: phone, 
-      birthday: birthday, 
-      gender: gender 
-    }) 
-  })
+  fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: "updateProfile", memberId: currentJwId, name: name, phone: phone, birthday: birthday, gender: gender }) })
   .then(res => res.json())
   .then(data => { 
-    if (data.status === "success") { 
-      Swal.fire('成功', '資料更新成功！', 'success'); 
-      renderDashboard(data); 
-    } else { 
-      Swal.fire('錯誤', data.message, 'error'); 
-    } 
+    if (data.status === "success") { Swal.fire('成功', '資料更新成功！', 'success'); renderDashboard(data); } 
+    else Swal.fire('錯誤', data.message, 'error'); 
   });
 }
 
 function submitBooking() {
-  const date1 = document.getElementById("date1").value;
-  const time1 = document.getElementById("time1").value;
-  const date2 = document.getElementById("date2").value;
-  const time2 = document.getElementById("time2").value;
-  const date3 = document.getElementById("date3").value;
-  const time3 = document.getElementById("time3").value;
-  const serviceType = document.getElementById("serviceType").value;
-  const remarks = document.getElementById("bookingRemarks").value; 
+  const date1 = document.getElementById("date1").value, time1 = document.getElementById("time1").value;
+  const date2 = document.getElementById("date2").value, time2 = document.getElementById("time2").value;
+  const date3 = document.getElementById("date3").value, time3 = document.getElementById("time3").value;
+  const serviceType = document.getElementById("serviceType").value, remarks = document.getElementById("bookingRemarks").value; 
+  if (!date1 || !time1) { Swal.fire('提示', '期望時間 1 為必填！', 'warning'); return; }
+  const fullTime1 = `${date1} ${time1}`; const fullTime2 = (date2 && time2) ? `${date2} ${time2}` : ""; const fullTime3 = (date3 && time3) ? `${date3} ${time3}` : "";
   
-  if (!date1 || !time1) { 
-    Swal.fire('提示', '期望時間 1 為必填！', 'warning'); 
-    return; 
-  }
-
-  const fullTime1 = `${date1} ${time1}`;
-  const fullTime2 = (date2 && time2) ? `${date2} ${time2}` : "";
-  const fullTime3 = (date3 && time3) ? `${date3} ${time3}` : "";
-  
-  Swal.fire({ 
-    title: '處理中...', 
-    text: '正在送出您的預約', 
-    allowOutsideClick: false, 
-    didOpen: () => { 
-      Swal.showLoading(); 
-    } 
-  });
-
-  fetch(GAS_URL, { 
-    method: "POST", 
-    body: JSON.stringify({ 
-      action: "submitBooking", 
-      memberId: currentJwId, 
-      time1: fullTime1, 
-      time2: fullTime2, 
-      time3: fullTime3, 
-      serviceType: serviceType, 
-      remarks: remarks 
-    }) 
-  })
+  Swal.fire({ title: '處理中...', text: '正在送出您的預約', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+  fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: "submitBooking", memberId: currentJwId, time1: fullTime1, time2: fullTime2, time3: fullTime3, serviceType: serviceType, remarks: remarks }) })
   .then(res => res.json())
   .then(data => {
     if (data.status === "success") {
       Swal.fire('申請已送出', '我們會盡快確認您的預約時間。', 'success');
-      
-      document.getElementById("date1").value = ""; 
-      document.getElementById("time1").value = ""; 
-      document.getElementById("date2").value = ""; 
-      document.getElementById("time2").value = ""; 
-      document.getElementById("date3").value = ""; 
-      document.getElementById("time3").value = ""; 
-      document.getElementById("bookingRemarks").value = ""; 
-      
-      document.getElementById("loadingMsg").classList.remove("hidden"); 
-      document.getElementById("mainSystem").classList.add("hidden");
-      
+      document.getElementById("date1").value = ""; document.getElementById("time1").value = ""; 
+      document.getElementById("date2").value = ""; document.getElementById("time2").value = ""; 
+      document.getElementById("date3").value = ""; document.getElementById("time3").value = ""; document.getElementById("bookingRemarks").value = ""; 
+      document.getElementById("loadingMsg").classList.remove("hidden"); document.getElementById("mainSystem").classList.add("hidden");
       getUserDataAndLogin();
-    } else { 
-      Swal.fire('錯誤', data.message, 'error'); 
-    }
+    } else Swal.fire('錯誤', data.message, 'error'); 
   });
 }
 
 function switchTab(tabIndex) {
-  document.querySelectorAll('.tab-content').forEach(el => {
-    el.classList.add('hidden');
-  }); 
-  
-  document.querySelectorAll('.tab-btn').forEach(el => {
-    el.classList.remove('active');
-  });
-  
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden')); 
+  document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
   document.getElementById('tab' + tabIndex).classList.remove('hidden'); 
   document.getElementById('btnTab' + tabIndex).classList.add('active');
 }
@@ -447,17 +317,168 @@ function switchTab(tabIndex) {
 function openLightbox(imageSrc) {
   const overlay = document.getElementById("globalLightbox");
   const imgElement = document.getElementById("lightboxImage");
-  
-  if (overlay && imgElement) {
-    imgElement.src = imageSrc;
-    overlay.style.display = "flex";
-  }
+  if (overlay && imgElement) { imgElement.src = imageSrc; overlay.style.display = "flex"; }
 }
 
 function closeLightbox() {
   const overlay = document.getElementById("globalLightbox");
-  if (overlay) {
-    overlay.style.display = "none";
-    document.getElementById("lightboxImage").src = "";
+  if (overlay) { overlay.style.display = "none"; document.getElementById("lightboxImage").src = ""; }
+}
+
+// ----------------------------------------------------------------------------
+// 💰 V2.0 點數錢包與遠端簽名引擎
+// ----------------------------------------------------------------------------
+function loadWalletData() {
+  document.getElementById("passbookList").innerHTML = "<p style='text-align:center; color:var(--text-muted);'>資料同步中...</p>";
+  
+  fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: "getWalletDashboardData", memberId: currentJwId }) })
+  .then(res => res.json())
+  .then(data => {
+    if (data.status === "success") {
+      currentWalletTotal = data.wallet.total;
+      document.getElementById("walletTotal").innerHTML = `${data.wallet.total} <span style="font-size:16px;">點</span>`;
+      document.getElementById("walletA").textContent = data.wallet.classA;
+      document.getElementById("walletB").textContent = data.wallet.classB;
+      document.getElementById("walletC").textContent = data.wallet.classC;
+      
+      const expDiv = document.getElementById("walletCExpiry");
+      if (data.wallet.classC > 0 && data.wallet.expiryC) {
+        expDiv.textContent = `⚠️ C類點數將於 ${data.wallet.expiryC} 到期`;
+        expDiv.classList.remove("hidden");
+      } else {
+        expDiv.classList.add("hidden");
+      }
+      
+      let passHtml = "";
+      if (data.passbook && data.passbook.length > 0) {
+        data.passbook.forEach(tx => {
+          let amtColor = String(tx.amount).startsWith("-") ? "#d9534f" : "#4CAF50";
+          passHtml += `
+            <div class="passbook-item">
+              <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                <strong>${tx.date}</strong>
+                <strong style="color:${amtColor};">${tx.amount} 點</strong>
+              </div>
+              <div style="font-size:13px; color:var(--text-main);">${tx.type}</div>
+              <div style="font-size:12px; color:var(--text-muted); margin-top:3px;">${tx.remarks}</div>
+              <div style="font-size:12px; color:var(--text-muted); text-align:right;">結餘: ${tx.balance} 點</div>
+            </div>
+          `;
+        });
+      } else {
+        passHtml = "<p style='color: var(--text-muted); font-size: 14px;'>目前無交易明細。</p>";
+      }
+      document.getElementById("passbookList").innerHTML = passHtml;
+    } else {
+      document.getElementById("passbookList").innerHTML = "<p style='color:red;'>讀取失敗，請重試。</p>";
+    }
+  });
+}
+
+function handleRemoteSignToken(token) {
+  Swal.fire({ title: '載入授權資料中...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+  
+  fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: "getRemoteSignTokenData", token: token }) })
+  .then(res => res.json())
+  .then(data => {
+    if (data.status === "success") {
+      if (data.payerId !== currentJwId) {
+        Swal.fire('權限錯誤', '您的身分與此授權連結指定的付款人不符。', 'error');
+        return;
+      }
+      Swal.close();
+      document.getElementById("rsConsumer").textContent = data.consumerName;
+      document.getElementById("rsItem").textContent = data.item;
+      document.getElementById("rsPoints").textContent = data.points;
+      
+      fetchWalletAndOpenModal(data.points);
+    } else {
+      Swal.fire('失效', data.message, 'error').then(() => { renderDashboard({profile: JSON.parse(sessionStorage.getItem("jwProfile"))}); });
+    }
+  }).catch(err => { Swal.fire('錯誤', '連線異常。', 'error'); });
+}
+
+function fetchWalletAndOpenModal(deductPoints) {
+  fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: "getWalletDashboardData", memberId: currentJwId }) })
+  .then(res => res.json())
+  .then(data => {
+    if (data.status === "success") {
+      currentWalletTotal = data.wallet.total;
+      const remain = currentWalletTotal - deductPoints;
+      document.getElementById("rsRemain").textContent = remain;
+      if (remain < 0) {
+        Swal.fire('餘額不足', `您的錢包餘額 (${currentWalletTotal}點) 不足扣款 (${deductPoints}點)，無法完成授權。`, 'warning')
+        .then(() => { renderDashboard({profile: JSON.parse(sessionStorage.getItem("jwProfile"))}); });
+        return;
+      }
+      openRemoteSignModal();
+    }
+  });
+}
+
+function openRemoteSignModal() {
+  document.getElementById('remoteSignModal').style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+  
+  setTimeout(() => {
+    const canvas = document.getElementById('remoteSignaturePad');
+    const wrapper = canvas.parentElement;
+    const ctx = canvas.getContext('2d');
+    const rect = wrapper.getBoundingClientRect();
+    
+    canvas.width = rect.width; 
+    canvas.height = rect.height;
+    ctx.lineWidth = 3;
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = '#000'; 
+    
+    let isDrawing = false;
+    const getPos = (e) => {
+      const r = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / r.width;
+      const scaleY = canvas.height / r.height;
+      if (e.touches && e.touches.length > 0) return { x: (e.touches[0].clientX - r.left) * scaleX, y: (e.touches[0].clientY - r.top) * scaleY };
+      else return { x: (e.clientX - r.left) * scaleX, y: (e.clientY - r.top) * scaleY };
+    };
+    const start = (e) => { e.preventDefault(); isDrawing = true; const p = getPos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); };
+    const draw = (e) => { e.preventDefault(); if (!isDrawing) return; const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); };
+    const stop = () => { isDrawing = false; ctx.closePath(); };
+
+    canvas.addEventListener('mousedown', start); canvas.addEventListener('mousemove', draw); 
+    canvas.addEventListener('mouseup', stop); canvas.addEventListener('mouseout', stop);
+    canvas.addEventListener('touchstart', start, { passive: false }); 
+    canvas.addEventListener('touchmove', draw, { passive: false }); 
+    canvas.addEventListener('touchend', stop);
+    
+    remoteSignPad = { canvas, ctx };
+  }, 100);
+}
+
+function clearRemoteSignature() {
+  if (remoteSignPad) remoteSignPad.ctx.clearRect(0, 0, remoteSignPad.canvas.width, remoteSignPad.canvas.height);
+}
+
+function closeAndSaveRemoteSign() {
+  const blank = document.createElement('canvas');
+  blank.width = remoteSignPad.canvas.width; blank.height = remoteSignPad.canvas.height;
+  if (remoteSignPad.canvas.toDataURL() === blank.toDataURL()) {
+    Swal.fire('提示', '請在上方空白處簽名以完成授權！', 'warning'); return;
   }
+  
+  Swal.fire({ title: '授權處理中...', text: '正在傳送憑證並扣除點數', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+  
+  // 維持證據客觀性：直接轉出原始畫布，不加濾鏡。壓縮0.7防拒絕。
+  const base64Image = remoteSignPad.canvas.toDataURL('image/jpeg', 0.7);
+  
+  fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: "submitRemoteSignature", token: remoteToken, memberId: currentJwId, base64Image: base64Image }) })
+  .then(res => res.json())
+  .then(data => {
+    if (data.status === "success") {
+      document.getElementById('remoteSignModal').style.display = 'none';
+      document.body.style.overflow = 'auto';
+      Swal.fire('授權成功', '已完成扣款！將返回主系統。', 'success').then(() => { window.location.href = "index.html"; });
+    } else {
+      Swal.fire('錯誤', data.message, 'error');
+    }
+  }).catch(err => { Swal.fire('錯誤', '網路異常。', 'error'); });
 }
