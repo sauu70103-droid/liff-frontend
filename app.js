@@ -11,7 +11,6 @@ let remoteSignPad = null;
 window.onload = function() {
   setupBookingInputs();
   
-  // 檢查是否為遠端授權連結
   const urlParams = new URLSearchParams(window.location.search);
   remoteToken = urlParams.get('token');
   
@@ -59,7 +58,6 @@ function getUserDataAndLogin() {
         currentJwId = data.profile.id;
         currentMemberName = data.profile.name; 
         
-        // 若為遠端授權模式，攔截並直接彈出授權視窗
         if (remoteToken) {
           document.getElementById("loadingMsg").classList.add("hidden");
           handleRemoteSignToken(remoteToken);
@@ -285,19 +283,25 @@ function updateProfile() {
 }
 
 function submitBooking() {
+  const therapist = document.getElementById("therapistType").value;
   const date1 = document.getElementById("date1").value, time1 = document.getElementById("time1").value;
   const date2 = document.getElementById("date2").value, time2 = document.getElementById("time2").value;
   const date3 = document.getElementById("date3").value, time3 = document.getElementById("time3").value;
   const serviceType = document.getElementById("serviceType").value, remarks = document.getElementById("bookingRemarks").value; 
+  
+  if (!therapist) { Swal.fire('提示', '請選擇指定師傅！', 'warning'); return; }
   if (!date1 || !time1) { Swal.fire('提示', '期望時間 1 為必填！', 'warning'); return; }
+  
   const fullTime1 = `${date1} ${time1}`; const fullTime2 = (date2 && time2) ? `${date2} ${time2}` : ""; const fullTime3 = (date3 && time3) ? `${date3} ${time3}` : "";
   
   Swal.fire({ title: '處理中...', text: '正在送出您的預約', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
-  fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: "submitBooking", memberId: currentJwId, time1: fullTime1, time2: fullTime2, time3: fullTime3, serviceType: serviceType, remarks: remarks }) })
+  
+  fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: "submitBooking", memberId: currentJwId, therapist: therapist, time1: fullTime1, time2: fullTime2, time3: fullTime3, serviceType: serviceType, remarks: remarks }) })
   .then(res => res.json())
   .then(data => {
     if (data.status === "success") {
       Swal.fire('申請已送出', '我們會盡快確認您的預約時間。', 'success');
+      document.getElementById("therapistType").value = "";
       document.getElementById("date1").value = ""; document.getElementById("time1").value = ""; 
       document.getElementById("date2").value = ""; document.getElementById("time2").value = ""; 
       document.getElementById("date3").value = ""; document.getElementById("time3").value = ""; document.getElementById("bookingRemarks").value = ""; 
@@ -325,9 +329,6 @@ function closeLightbox() {
   if (overlay) { overlay.style.display = "none"; document.getElementById("lightboxImage").src = ""; }
 }
 
-// ----------------------------------------------------------------------------
-// 💰 V2.0 點數錢包與遠端簽名引擎
-// ----------------------------------------------------------------------------
 function loadWalletData() {
   document.getElementById("passbookList").innerHTML = "<p style='text-align:center; color:var(--text-muted);'>資料同步中...</p>";
   
@@ -467,7 +468,6 @@ function closeAndSaveRemoteSign() {
   
   Swal.fire({ title: '授權處理中...', text: '正在傳送憑證並扣除點數', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
   
-  // 維持證據客觀性：直接轉出原始畫布，不加濾鏡。壓縮0.7防拒絕。
   const base64Image = remoteSignPad.canvas.toDataURL('image/jpeg', 0.7);
   
   fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: "submitRemoteSignature", token: remoteToken, memberId: currentJwId, base64Image: base64Image }) })
