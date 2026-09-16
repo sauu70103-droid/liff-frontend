@@ -26,7 +26,6 @@
     </div>
 
     <div id="mainSystem" class="hidden">
-      <!-- 【動線調整】：Tab 排序重組 -->
       <div class="tabs">
         <button class="tab-btn active" id="btnTab1" onclick="switchTab(1)">基本資料</button>
         <button class="tab-btn" id="btnTab2" onclick="switchTab(2)">預約專區</button>
@@ -88,12 +87,10 @@
         </div>
       </div>
 
-      <!-- 【內容順序調整】：對調預約專區與調理紀錄的 DIV -->
       <div id="tab2" class="tab-content hidden">
         <div class="card">
           <h3>預約調理</h3>
           
-          <!-- 【方案文案更新】：附加預設時長標示 -->
           <label>方案</label>
           <select id="serviceType">
             <option value="無痛滑罐放鬆 (快速舒緩) - [約 30 分鐘]">無痛滑罐放鬆 (快速舒緩) - [約 30 分鐘]</option>
@@ -102,13 +99,12 @@
             <option value="全身深度重整 (全身放鬆+全身傳統整復) - [約 90 分鐘]">全身深度重整 (全身放鬆+全身傳統整復) - [約 90 分鐘]</option>
           </select>
 
-          <!-- 【新增指定師傅欄位】：必填 -->
+          <!-- 【下拉排序重組】：由中心安排預設為第一項且 selected -->
           <label>指定師傅 (必填)</label>
           <select id="therapistType">
-            <option value="">請選擇指定師傅</option>
+            <option value="由中心安排 (不指定)" selected>由中心安排 (不指定)</option>
             <option value="千芳（女）">千芳（女）</option>
             <option value="奎元（男）">奎元（男）</option>
-            <option value="由中心安排 (不指定)">由中心安排 (不指定)</option>
           </select>
 
           <label>期望時間 1 (必填)</label>
@@ -129,7 +125,6 @@
             <select id="time3"></select>
           </div>
           
-          <!-- 【備註欄位引導化】：更新 Placeholder -->
           <label>狀況描述與備註 (選填)</label>
           <textarea id="bookingRemarks" rows="3" placeholder="請簡單描述狀況與需求（例如：希望女性師傅調理、怕痛...等）"></textarea>
           
