@@ -1,7 +1,8 @@
 const GAS_URL = "https://script.google.com/macros/s/AKfycbwApGqvuUMuERNtrlEr1NHSKxooH_fD9XF_t1v-iKg_gDJ0kRBqnrKodhjVlIWa-u16sw/exec"; 
 const LIFF_ID = "2011305352-GK5jDrbh"; 
 
-let userLineUid = "";
+// 確保掛載於 window 以供 auth.js 讀取
+window.userLineUid = "";
 let currentJwId = "";
 let currentMemberName = "";
 let remoteToken = null;
@@ -14,14 +15,28 @@ window.onload = function() {
   const urlParams = new URLSearchParams(window.location.search);
   remoteToken = urlParams.get('token');
   
+  // 【V2.5 異動：卡死 Timeout 防護】設定 8 秒強制阻斷機制
+  let loadTimeout = setTimeout(() => {
+    const loader = document.getElementById("loadingMsg");
+    if (loader && !loader.classList.contains("hidden")) {
+      loader.innerHTML = `
+        <h3 style="color:#d9534f;">連線逾時或網路不穩</h3>
+        <p style="font-size:14px; color:var(--text-muted);">請確認網路狀態後重新載入頁面。</p>
+        <button onclick="window.location.reload()" style="margin-top:10px;">重新載入</button>
+      `;
+    }
+  }, 8000);
+  
   liff.init({ liffId: LIFF_ID }).then(() => {
     if (!liff.isLoggedIn()) {
+      clearTimeout(loadTimeout); // 清除逾時器
       liff.login(); 
     } else {
-      getUserDataAndLogin();
+      getUserDataAndLogin(loadTimeout);
     }
   }).catch(err => { 
-    document.getElementById("loadingMsg").innerHTML = "<h3>LIFF 載入失敗，請確認網路連線</h3>"; 
+    clearTimeout(loadTimeout);
+    document.getElementById("loadingMsg").innerHTML = "<h3>LIFF 載入失敗，請確認網路連線</h3><button onclick='window.location.reload()'>重試</button>"; 
   });
 };
 
@@ -45,15 +60,16 @@ function setupBookingInputs() {
   document.getElementById("time3").innerHTML = optionsHtml;
 }
 
-function getUserDataAndLogin() {
+function getUserDataAndLogin(loadTimeout) {
   liff.getProfile().then(profile => {
-    userLineUid = profile.userId;
+    window.userLineUid = profile.userId;
     fetch(GAS_URL, { 
       method: "POST", 
-      body: JSON.stringify({ action: "autoLogin", lineUid: userLineUid }) 
+      body: JSON.stringify({ action: "autoLogin", lineUid: window.userLineUid }) 
     })
     .then(res => res.json())
     .then(data => {
+      clearTimeout(loadTimeout); // 成功連線，解除 Timeout 防護
       if (data.status === "success") {
         currentJwId = data.profile.id;
         currentMemberName = data.profile.name; 
@@ -70,6 +86,7 @@ function getUserDataAndLogin() {
         document.getElementById("bindSection").classList.remove("hidden");
       }
     }).catch(err => {
+      clearTimeout(loadTimeout);
       Swal.fire('錯誤', '網路錯誤，請重新開啟。', 'error');
     });
   });
@@ -88,7 +105,7 @@ function bindAccount() {
 
   fetch(GAS_URL, { 
     method: "POST", 
-    body: JSON.stringify({ action: "bindAccount", lineUid: userLineUid, phone: rawPhone }) 
+    body: JSON.stringify({ action: "bindAccount", lineUid: window.userLineUid, phone: rawPhone }) 
   })
   .then(res => res.json())
   .then(data => {
@@ -251,7 +268,14 @@ function changeBookingHandler(timeStr, serviceStr, actionType) {
 function sendChangeRequest(timeStr, serviceStr, actionType, userMessage) {
   document.getElementById("loadingMsg").classList.remove("hidden"); 
   document.getElementById("mainSystem").classList.add("hidden");
-  fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: "changeBooking", memberId: currentJwId, bookingTime: timeStr, serviceType: serviceType, changeType: actionType, userMessage: userMessage }) })
+  
+  // 【V2.5 異動】：附加操作人員權限戳記
+  let finalMessage = userMessage;
+  if(window.getStaffStamp && getStaffStamp() !== "") {
+    finalMessage += ` \n ${getStaffStamp()}`;
+  }
+
+  fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: "changeBooking", memberId: currentJwId, bookingTime: timeStr, serviceType: serviceType, changeType: actionType, userMessage: finalMessage }) })
   .then(res => res.json())
   .then(data => { 
     getUserDataAndLogin(); 
@@ -287,13 +311,19 @@ function submitBooking() {
   const date1 = document.getElementById("date1").value, time1 = document.getElementById("time1").value;
   const date2 = document.getElementById("date2").value, time2 = document.getElementById("time2").value;
   const date3 = document.getElementById("date3").value, time3 = document.getElementById("time3").value;
-  const serviceType = document.getElementById("serviceType").value, remarks = document.getElementById("bookingRemarks").value; 
+  const serviceType = document.getElementById("serviceType").value;
+  let remarks = document.getElementById("bookingRemarks").value; 
   
   if (!therapist) { Swal.fire('提示', '請選擇指定師傅！', 'warning'); return; }
   if (!date1 || !time1) { Swal.fire('提示', '期望時間 1 為必填！', 'warning'); return; }
   
   const fullTime1 = `${date1} ${time1}`; const fullTime2 = (date2 && time2) ? `${date2} ${time2}` : ""; const fullTime3 = (date3 && time3) ? `${date3} ${time3}` : "";
   
+  // 【V2.5 異動】：附加操作人員權限戳記
+  if(window.getStaffStamp && getStaffStamp() !== "") {
+    remarks += ` \n ${getStaffStamp()}`;
+  }
+
   Swal.fire({ title: '處理中...', text: '正在送出您的預約', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
   
   fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: "submitBooking", memberId: currentJwId, therapist: therapist, time1: fullTime1, time2: fullTime2, time3: fullTime3, serviceType: serviceType, remarks: remarks }) })
@@ -301,7 +331,7 @@ function submitBooking() {
   .then(data => {
     if (data.status === "success") {
       Swal.fire('申請已送出', '我們會盡快確認您的預約時間。', 'success');
-      document.getElementById("therapistType").value = "";
+      document.getElementById("therapistType").value = "由中心安排 (不指定)";
       document.getElementById("date1").value = ""; document.getElementById("time1").value = ""; 
       document.getElementById("date2").value = ""; document.getElementById("time2").value = ""; 
       document.getElementById("date3").value = ""; document.getElementById("time3").value = ""; document.getElementById("bookingRemarks").value = ""; 
