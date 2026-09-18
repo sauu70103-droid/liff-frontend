@@ -11,7 +11,8 @@
 <body>
   <div class="container">
     <div class="logo-container">
-      <img src="./logo.png" alt="錦葳健康美學中心">
+      <!-- 【V2.5 異動】：加入 id="mainLogo" 供 auth.js 綁定隱藏閘道 -->
+      <img id="mainLogo" src="./logo.png" alt="錦葳健康美學中心" style="cursor: pointer; user-select: none; -webkit-user-select: none;">
     </div>
     
     <div id="loadingMsg" class="card" style="text-align:center;">
@@ -99,7 +100,6 @@
             <option value="全身深度重整 (全身放鬆+全身傳統整復) - [約 90 分鐘]">全身深度重整 (全身放鬆+全身傳統整復) - [約 90 分鐘]</option>
           </select>
 
-          <!-- 【下拉排序重組】：由中心安排預設為第一項且 selected -->
           <label>指定師傅 (必填)</label>
           <select id="therapistType">
             <option value="由中心安排 (不指定)" selected>由中心安排 (不指定)</option>
@@ -189,6 +189,8 @@
     </div>
   </div>
 
+  <!-- 【V2.5 異動】：嚴格同步依賴順序，先載入驗證模組再載入主邏輯 -->
+  <script src="auth.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
