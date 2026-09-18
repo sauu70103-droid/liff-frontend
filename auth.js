@@ -1,31 +1,41 @@
 /**
  * ============================================================================
- * 錦葳健康美學中心 - 工作人員驗證與隱藏閘道模組 (V2.5.1 快速點擊切換版)
+ * 錦葳健康美學中心 - 工作人員驗證與隱藏閘道模組 (V2.7 實名無聲單擊版)
  * ============================================================================
  */
-
-let clickCount = 0;
-let lastClickTime = 0;
 
 function initHiddenGateway() {
   const logo = document.getElementById("mainLogo");
   if (!logo) return;
   
   logo.addEventListener("click", (e) => {
-    const currentTime = new Date().getTime();
+    const uid = window.userLineUid || "";
     
-    // 防呆：如果距離上次點擊超過 500 毫秒，則重新計數
-    if (currentTime - lastClickTime > 500) {
-      clickCount = 0;
+    // 實名隱形查核 1：若為創辦人 LINE_ID，或本地已留存授權 Token，直接彈出密碼框
+    const isGodMode = (uid === "Udb1efc9c39494178114788d794028649");
+    const hasStaffToken = localStorage.getItem("jwStaffToken") !== null;
+    
+    if (isGodMode || hasStaffToken) {
+      promptStaffLogin();
+      return;
     }
     
-    clickCount++;
-    lastClickTime = currentTime;
-
-    // 當連續合法點擊達到 5 次時，觸發隱藏閘道
-    if (clickCount === 5) {
-      clickCount = 0; // 觸發後重置計數器
-      promptStaffLogin();
+    // 實名隱形查核 2：若為其他使用者，向後端發起無聲查核
+    if (uid) {
+      fetch(GAS_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action: "checkStaffEligibility", lineUid: uid })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.isEligible) {
+          promptStaffLogin();
+        }
+        // 若 isEligible 為 false，絕對靜默
+      })
+      .catch(err => {
+        // 發生錯誤時絕對靜默，不干擾一般顧客
+      });
     }
   });
 }
@@ -62,7 +72,6 @@ function promptStaffLogin() {
   }).then((result) => {
     if (result.isConfirmed) {
       if (result.value.status === "success") {
-        // 將權限 Token 存入本地端
         localStorage.setItem("jwStaffToken", JSON.stringify(result.value.staff));
         Swal.fire({
           icon: 'success',
