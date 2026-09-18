@@ -1,34 +1,33 @@
 /**
  * ============================================================================
- * 錦葳健康美學中心 - 工作人員驗證與隱藏閘道模組 (V2.5 安全切分)
+ * 錦葳健康美學中心 - 工作人員驗證與隱藏閘道模組 (V2.5.1 快速點擊切換版)
  * ============================================================================
  */
 
-let pressTimer;
+let clickCount = 0;
+let lastClickTime = 0;
 
 function initHiddenGateway() {
   const logo = document.getElementById("mainLogo");
   if (!logo) return;
   
-  const startPress = (e) => {
-    // 防呆：避免預設的圖片拖曳行為干擾長按
-    if(e.type === 'mousedown') e.preventDefault();
+  logo.addEventListener("click", (e) => {
+    const currentTime = new Date().getTime();
     
-    pressTimer = window.setTimeout(() => {
+    // 防呆：如果距離上次點擊超過 500 毫秒，則重新計數
+    if (currentTime - lastClickTime > 500) {
+      clickCount = 0;
+    }
+    
+    clickCount++;
+    lastClickTime = currentTime;
+
+    // 當連續合法點擊達到 5 次時，觸發隱藏閘道
+    if (clickCount === 5) {
+      clickCount = 0; // 觸發後重置計數器
       promptStaffLogin();
-    }, 3000); // 長按 3 秒觸發
-  };
-  
-  const cancelPress = () => { 
-    if(pressTimer) clearTimeout(pressTimer); 
-  };
-  
-  logo.addEventListener("mousedown", startPress);
-  logo.addEventListener("mouseup", cancelPress);
-  logo.addEventListener("mouseleave", cancelPress);
-  logo.addEventListener("touchstart", startPress, { passive: false });
-  logo.addEventListener("touchend", cancelPress);
-  logo.addEventListener("touchcancel", cancelPress);
+    }
+  });
 }
 
 function promptStaffLogin() {
