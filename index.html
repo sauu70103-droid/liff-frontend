@@ -11,7 +11,6 @@
 <body>
   <div class="container">
     <div class="logo-container">
-      <!-- 【V2.5 異動】：加入 id="mainLogo" 供 auth.js 綁定隱藏閘道 -->
       <img id="mainLogo" src="./logo.png" alt="錦葳健康美學中心" style="cursor: pointer; user-select: none; -webkit-user-select: none;">
     </div>
     
@@ -97,7 +96,8 @@
             <option value="無痛滑罐放鬆 (快速舒緩) - [約 30 分鐘]">無痛滑罐放鬆 (快速舒緩) - [約 30 分鐘]</option>
             <option value="單部位傳統整復 (依部位收費及調理) - [約 30 分鐘]">單部位傳統整復 (依部位收費及調理) - [約 30 分鐘]</option>
             <option value="重點平衡調理 (半身放鬆+全身傳統整復) - [約 60 分鐘]">重點平衡調理 (半身放鬆+全身傳統整復) - [約 60 分鐘]</option>
-            <option value="全身深度重整 (全身放鬆+全身傳統整復) - [約 90 分鐘]">全身深度重整 (全身放鬆+全身傳統整復) - [約 90 分鐘]</option>
+            <!-- 【本次異動】：將時長從 90 分鐘更正為 120 分鐘 -->
+            <option value="全身深度重整 (全身放鬆+全身傳統整復) - [約 120 分鐘]">全身深度重整 (全身放鬆+全身傳統整復) - [約 120 分鐘]</option>
           </select>
 
           <label>指定師傅 (必填)</label>
@@ -189,7 +189,6 @@
     </div>
   </div>
 
-  <!-- 【V2.5 異動】：嚴格同步依賴順序，先載入驗證模組再載入主邏輯 -->
   <script src="auth.js"></script>
   <script src="app.js"></script>
 </body>
