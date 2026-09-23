@@ -7,6 +7,16 @@
   <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <link rel="stylesheet" href="style.css">
+  <style>
+    /* 管理員總署專屬 UI 樣式 */
+    .admin-portal { background: linear-gradient(135deg, #1c1c1c, #3a3a3a); color: white; border: 1px solid #d4af37; border-radius: 8px; padding: 15px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+    .admin-portal h3 { color: #d4af37; margin-top: 0; text-align: center; font-size: 18px; border-bottom: 1px dashed #555; padding-bottom: 10px; }
+    .sso-btn { display: block; width: 100%; padding: 12px; margin: 8px 0; background: #d4af37; color: #111; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; text-align: center; text-decoration: none; }
+    .sso-btn:hover { background: #e6c855; }
+    .sso-btn.disabled { background: #555; color: #888; cursor: not-allowed; }
+    .pin-box { margin-top: 15px; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 5px; }
+    .pin-box input { width: calc(100% - 20px); margin-bottom: 10px; background: #222; color: #fff; border: 1px solid #555; }
+  </style>
 </head>
 <body>
   <div class="container">
@@ -26,6 +36,22 @@
     </div>
 
     <div id="mainSystem" class="hidden">
+      
+      <!-- 【V3.4 SSO入口網】：管理員總署面板 (預設隱藏) -->
+      <div id="adminPortal" class="admin-portal hidden">
+        <h3>👑 錦葳數位總署入口</h3>
+        <p style="font-size:13px; color:#bbb; text-align:center; margin-bottom:15px;">您好，<span id="staffPortalName" style="color:#d4af37; font-weight:bold;"></span>。權限已核發。</p>
+        
+        <button id="btnMiddle" class="sso-btn disabled" onclick="jumpToSso('middle')">🚀 進入中台 (師傅系統)</button>
+        <button id="btnStore" class="sso-btn disabled" onclick="jumpToSso('store')">📊 進入後台 (店務與財務)</button>
+        
+        <div class="pin-box">
+          <p style="font-size:13px; color:#ccc; margin-top:0;">🔐 變更自訂密碼 (更新後通用密碼將失效)</p>
+          <input type="password" id="newStaffPin" placeholder="請輸入新 PIN 碼 (限英數字)">
+          <button class="btn-secondary" style="width:100%; border-color:#d4af37; color:#d4af37;" onclick="updateMyPin()">確認變更密碼</button>
+        </div>
+      </div>
+
       <div class="tabs">
         <button class="tab-btn active" id="btnTab1" onclick="switchTab(1)">基本資料</button>
         <button class="tab-btn" id="btnTab2" onclick="switchTab(2)">預約專區</button>
@@ -55,7 +81,6 @@
           </div>
           
           <button id="toggleEditBtn" class="btn-secondary" onclick="toggleEditForm()" style="margin-top: 15px; margin-bottom: 15px;">修改個人資料</button>
-          
           <button class="btn-outline" onclick="goToGeneralCheckIn()" style="margin-bottom: 15px; width: 100%; border-width: 2px;">📝 我要報到</button>
 
           <hr style="border: 0; border-top: 1px dashed var(--border-color); margin: 15px 0;">
@@ -65,23 +90,13 @@
 
         <div class="card hidden" id="profileEditCard">
           <h3>修改個人資料</h3>
-          <label>姓名</label>
-          <input type="text" id="editName">
-          
-          <label>手機號碼</label>
-          <input type="tel" id="editPhone" maxlength="10">
-          
-          <label>生日</label>
-          <input type="date" id="editBirthday">
-          
+          <label>姓名</label><input type="text" id="editName">
+          <label>手機號碼</label><input type="tel" id="editPhone" maxlength="10">
+          <label>生日</label><input type="date" id="editBirthday">
           <label>性別</label>
           <select id="editGender">
-            <option value="">請選擇</option>
-            <option value="男">男</option>
-            <option value="女">女</option>
-            <option value="其他">其他</option>
+            <option value="">請選擇</option><option value="男">男</option><option value="女">女</option><option value="其他">其他</option>
           </select>
-          
           <button onclick="updateProfile()">儲存修改</button>
           <button class="btn-secondary" onclick="toggleEditForm()">取消修改</button>
         </div>
@@ -90,13 +105,11 @@
       <div id="tab2" class="tab-content hidden">
         <div class="card">
           <h3>預約調理</h3>
-          
           <label>方案</label>
           <select id="serviceType">
             <option value="無痛滑罐放鬆 (快速舒緩) - [約 30 分鐘]">無痛滑罐放鬆 (快速舒緩) - [約 30 分鐘]</option>
             <option value="單部位傳統整復 (依部位收費及調理) - [約 30 分鐘]">單部位傳統整復 (依部位收費及調理) - [約 30 分鐘]</option>
             <option value="重點平衡調理 (半身放鬆+全身傳統整復) - [約 60 分鐘]">重點平衡調理 (半身放鬆+全身傳統整復) - [約 60 分鐘]</option>
-            <!-- 【本次異動】：將時長從 90 分鐘更正為 120 分鐘 -->
             <option value="全身深度重整 (全身放鬆+全身傳統整復) - [約 120 分鐘]">全身深度重整 (全身放鬆+全身傳統整復) - [約 120 分鐘]</option>
           </select>
 
@@ -108,35 +121,20 @@
           </select>
 
           <label>期望時間 1 (必填)</label>
-          <div class="datetime-group">
-            <input type="date" id="date1">
-            <select id="time1"></select>
-          </div>
-          
+          <div class="datetime-group"><input type="date" id="date1"><select id="time1"></select></div>
           <label>期望時間 2 (選填)</label>
-          <div class="datetime-group">
-            <input type="date" id="date2">
-            <select id="time2"></select>
-          </div>
-          
+          <div class="datetime-group"><input type="date" id="date2"><select id="time2"></select></div>
           <label>期望時間 3 (選填)</label>
-          <div class="datetime-group">
-            <input type="date" id="date3">
-            <select id="time3"></select>
-          </div>
+          <div class="datetime-group"><input type="date" id="date3"><select id="time3"></select></div>
           
           <label>狀況描述與備註 (選填)</label>
           <textarea id="bookingRemarks" rows="3" placeholder="請簡單描述狀況與需求（例如：希望女性師傅調理、怕痛...等）"></textarea>
-          
           <button onclick="submitBooking()">送出預約申請</button>
         </div>
       </div>
 
       <div id="tab3" class="tab-content hidden">
-        <div class="card">
-          <h3>最近調理紀錄</h3>
-          <div id="historyList"></div>
-        </div>
+        <div class="card"><h3>最近調理紀錄</h3><div id="historyList"></div></div>
       </div>
 
       <div id="tab4" class="tab-content hidden">
@@ -144,18 +142,13 @@
           <h3 style="text-align: center; margin-bottom: 5px;">💰 點數錢包餘額</h3>
           <h2 id="walletTotal" style="text-align: center; color: var(--primary-color); font-size: 36px; margin: 10px 0;">0 <span style="font-size:16px;">點</span></h2>
           <p style="text-align: center; font-size: 13px; color: var(--text-muted); margin-top: 0;">1 點 = 1 元新台幣</p>
-          
           <hr style="border: 0; border-top: 1px dashed var(--border-color); margin: 15px 0;">
           <div class="info-row"><div class="info-label" style="width: 100px;">A類 (儲值本金)</div><div class="info-value" id="walletA" style="text-align: right; font-weight: bold;">0</div></div>
           <div class="info-row"><div class="info-label" style="width: 100px;">B類 (待解鎖)</div><div class="info-value" id="walletB" style="text-align: right; font-weight: bold; color: var(--text-muted);">0</div></div>
           <div class="info-row"><div class="info-label" style="width: 100px;">C類 (活動贈點)</div><div class="info-value" id="walletC" style="text-align: right; font-weight: bold;">0</div></div>
           <div id="walletCExpiry" class="disclaimer-text hidden" style="text-align: right; margin-top: 5px;"></div>
         </div>
-
-        <div class="card">
-          <h3>存摺明細</h3>
-          <div id="passbookList"></div>
-        </div>
+        <div class="card"><h3>存摺明細</h3><div id="passbookList"></div></div>
       </div>
     </div>
   </div>
@@ -163,30 +156,6 @@
   <div id="globalLightbox" class="lightbox-overlay" onclick="closeLightbox()">
     <button class="lightbox-close" onclick="closeLightbox()">&times;</button>
     <img id="lightboxImage" class="lightbox-img" src="" alt="放大檢視" onclick="event.stopPropagation()">
-  </div>
-
-  <div class="modal-overlay" id="remoteSignModal">
-    <div class="modal-content" style="max-width: 500px; max-height: 90vh; overflow-y: auto;">
-      <h3 style="text-align: center; color: var(--primary-color); margin-bottom: 10px;">錦葳健康美學中心 - 遠端代付授權</h3>
-      <div style="background: #faf8f5; padding: 15px; border-radius: 8px; margin-bottom: 15px; font-size: 15px; line-height: 1.6;">
-        <strong>消費者姓名：</strong> <span id="rsConsumer">載入中...</span><br>
-        <strong>消費項目：</strong> <span id="rsItem">載入中...</span><br>
-        <strong>扣除總點數：</strong> <span id="rsPoints" style="color: #d9534f; font-weight: bold; font-size: 18px;">0</span> 點<br>
-        <hr style="border: 0; border-top: 1px dashed var(--border-color); margin: 10px 0;">
-        <span style="color: var(--text-muted); font-size: 13px;">扣款後剩餘：<span id="rsRemain">0</span> 點</span>
-      </div>
-      
-      <p class="disclaimer-text" style="font-size: 13px; margin-bottom: 10px;">本人同意自點數錢包扣除上述點數，做為遠端代付之憑證。本授權簽署後即生效，無法撤銷。</p>
-      
-      <div class="canvas-wrapper" id="remoteSignatureWrapper" style="height: 250px; margin-bottom: 15px;">
-        <canvas id="remoteSignaturePad"></canvas>
-      </div>
-      
-      <div class="modal-actions" style="display: flex; gap: 10px;">
-        <button class="btn-secondary" onclick="clearRemoteSignature()" style="flex: 1;">清除重簽</button>
-        <button onclick="closeAndSaveRemoteSign()" style="flex: 2;">確認授權扣款</button>
-      </div>
-    </div>
   </div>
 
   <script src="auth.js"></script>
