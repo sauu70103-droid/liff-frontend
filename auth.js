@@ -1,10 +1,9 @@
 /**
  * ============================================================================
- * 錦葳健康美學中心 - 工作人員驗證與隱藏閘道模組 (V3.4 SSO 入口網)
+ * 錦葳健康美學中心 - 工作人員驗證與隱藏閘道模組 (V3.5 密碼覆寫防禦版)
  * ============================================================================
  */
 
-// 暫存後端傳來的 SSO 網址
 let ssoUrls = { middle: "", store: "" };
 
 function initHiddenGateway() {
@@ -16,7 +15,6 @@ function initHiddenGateway() {
     const isGodMode = (uid === "Udb1efc9c39494178114788d794028649");
     const hasStaffToken = localStorage.getItem("jwStaffToken") !== null;
     
-    // 檢查本地是否已經有網址庫存，有的話代表已登入過，直接開啟面板
     const savedUrls = localStorage.getItem("jwSsoUrls");
     if (savedUrls && hasStaffToken) {
        ssoUrls = JSON.parse(savedUrls);
@@ -80,7 +78,6 @@ function promptStaffLogin() {
   });
 }
 
-// 顯示並動態綁定管理員總署面板
 function showAdminPortal() {
   const portal = document.getElementById("adminPortal");
   if (!portal) return;
@@ -111,7 +108,6 @@ function showAdminPortal() {
   }
 }
 
-// 發射器：跨系統跳轉
 function jumpToSso(target) {
    if (target === 'middle' && ssoUrls.middle && !document.getElementById("btnMiddle").classList.contains("disabled")) {
        window.location.href = ssoUrls.middle + "?sso_auth=true&source=hq";
@@ -122,7 +118,6 @@ function jumpToSso(target) {
    }
 }
 
-// 密碼覆寫引擎
 function updateMyPin() {
    const newPin = document.getElementById("newStaffPin").value;
    if (!newPin || newPin.length < 4) {
@@ -139,7 +134,7 @@ function updateMyPin() {
       body: JSON.stringify({ action: "updateStaffPin", lineUid: window.userLineUid || "", newPin: newPin })
    }).then(res => res.json()).then(data => {
       if (data.status === "success") {
-         Swal.fire('成功', '專屬密碼已更新！下次由外部進入請使用新密碼。', 'success');
+         Swal.fire('成功', '專屬密碼已更新！通用密碼已對您永久失效。', 'success');
          document.getElementById("newStaffPin").value = "";
       } else {
          Swal.fire('錯誤', data.message, 'error');
