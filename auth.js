@@ -1,10 +1,12 @@
 /**
  * ============================================================================
- * 錦葳健康美學中心 - 工作人員驗證與隱藏閘道模組 (V3.8 SuperAdmin 派發引擎版)
+ * 錦葳健康美學中心 - 工作人員驗證與隱藏閘道模組 (V3.9 SSO 硬編碼穩定版)
  * ============================================================================
  */
 
-let ssoUrls = { middle: "", store: "" };
+// 【緊急修復】：直接硬編碼寫入中/後台 LIFF 網址，脫離後端傳遞不穩定的風險
+const MIDDLE_LIFF_URL = "https://liff.line.me/2010124473-hpqQUkHn";
+const STORE_LIFF_URL = "https://liff.line.me/2010453415-nTX3Lo1L";
 
 function initHiddenGateway() {
   const logo = document.getElementById("mainLogo");
@@ -15,14 +17,11 @@ function initHiddenGateway() {
     const isGodMode = (uid === "Udb1efc9c39494178114788d794028649");
     const hasStaffToken = localStorage.getItem("jwStaffToken") !== null;
     
-    const savedUrls = localStorage.getItem("jwSsoUrls");
-    if (savedUrls && hasStaffToken) {
-       ssoUrls = JSON.parse(savedUrls);
-       showAdminPortal();
-       return;
-    }
-    
     if (isGodMode || hasStaffToken) {
+      if (hasStaffToken) {
+        showAdminPortal();
+        return;
+      }
       promptStaffLogin();
       return;
     }
@@ -64,10 +63,6 @@ function promptStaffLogin() {
     if (result.isConfirmed) {
       if (result.value.status === "success") {
         localStorage.setItem("jwStaffToken", JSON.stringify(result.value.staff));
-        if (result.value.urls) {
-           ssoUrls = result.value.urls;
-           localStorage.setItem("jwSsoUrls", JSON.stringify(ssoUrls));
-        }
         Swal.fire({ icon: 'success', title: '授權成功', text: `歡迎回來，${result.value.staff.name}！權限已開通。`, confirmButtonColor: '#B9936C' }).then(() => {
            showAdminPortal();
         });
@@ -91,27 +86,29 @@ function showAdminPortal() {
       const btnMid = document.getElementById("btnMiddle");
       const btnStore = document.getElementById("btnStore");
       
-      if (staff.authMiddle && ssoUrls.middle) btnMid.classList.remove("disabled");
+      if (staff.authMiddle) btnMid.classList.remove("disabled");
       else btnMid.classList.add("disabled");
       
-      if (staff.authStore && ssoUrls.store) btnStore.classList.remove("disabled");
+      if (staff.authStore) btnStore.classList.remove("disabled");
       else btnStore.classList.add("disabled");
       
       portal.classList.remove("hidden");
 
-      // 🛡️ 若為第一管理員，載入並展開人員權限管理模組
       if (staff.isSuperAdmin) {
-        document.getElementById("superAdminPanel").classList.remove("hidden");
-        loadStaffList();
+        const adminPanel = document.getElementById("superAdminPanel");
+        if(adminPanel) {
+            adminPanel.classList.remove("hidden");
+            loadStaffList();
+        }
       }
-
     } catch(e) {}
   }
 }
 
-// 撈取員工清單並渲染三維下拉選單
 function loadStaffList() {
-  document.getElementById("staffAuthList").innerHTML = "<p style='color:#bbb; text-align:center;'>名單載入中...</p>";
+  const listContainer = document.getElementById("staffAuthList");
+  if (!listContainer) return;
+  listContainer.innerHTML = "<p style='color:#bbb; text-align:center;'>名單載入中...</p>";
   
   fetch(GAS_URL, {
     method: 'POST',
@@ -146,16 +143,15 @@ function loadStaffList() {
           </div>
         `;
       });
-      document.getElementById("staffAuthList").innerHTML = html;
+      listContainer.innerHTML = html;
     } else {
-      document.getElementById("staffAuthList").innerHTML = `<p style='color:#d9534f; text-align:center;'>${data.message}</p>`;
+      listContainer.innerHTML = `<p style='color:#d9534f; text-align:center;'>${data.message}</p>`;
     }
   }).catch(err => {
-    document.getElementById("staffAuthList").innerHTML = "<p style='color:#d9534f; text-align:center;'>載入失敗，網路異常。</p>";
+    listContainer.innerHTML = "<p style='color:#d9534f; text-align:center;'>載入失敗，網路異常。</p>";
   });
 }
 
-// 儲存權限變更發送至後端
 function saveStaffAuth() {
   const rows = document.querySelectorAll(".staff-auth-row");
   const updates = [];
@@ -186,13 +182,14 @@ function saveStaffAuth() {
   });
 }
 
+// 【修復核心】：使用絕對常數進行 SSO 跳轉
 function jumpToSso(target) {
-   if (target === 'middle' && ssoUrls.middle && !document.getElementById("btnMiddle").classList.contains("disabled")) {
-       window.location.href = ssoUrls.middle + "?sso_auth=true&source=hq";
-   } else if (target === 'store' && ssoUrls.store && !document.getElementById("btnStore").classList.contains("disabled")) {
-       window.location.href = ssoUrls.store + "?sso_auth=true&source=hq";
+   if (target === 'middle' && !document.getElementById("btnMiddle").classList.contains("disabled")) {
+       window.location.href = MIDDLE_LIFF_URL + "?sso_auth=true&source=hq";
+   } else if (target === 'store' && !document.getElementById("btnStore").classList.contains("disabled")) {
+       window.location.href = STORE_LIFF_URL + "?sso_auth=true&source=hq";
    } else {
-       Swal.fire('權限不足', '您無權限進入此系統，或系統尚未設定對應網址。', 'warning');
+       Swal.fire('權限不足', '您無權限進入此系統，或該按鈕尚未解鎖。', 'warning');
    }
 }
 
