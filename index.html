@@ -16,6 +16,10 @@
     .sso-btn.disabled { background: #555; color: #888; cursor: not-allowed; }
     .pin-box { margin-top: 15px; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 5px; }
     .pin-box input { width: calc(100% - 20px); margin-bottom: 10px; background: #222; color: #fff; border: 1px solid #555; }
+    
+    /* SuperAdmin 專屬權限面板樣式 */
+    .staff-auth-row { border-bottom: 1px solid #444; padding-bottom: 10px; }
+    .staff-auth-row:last-child { border-bottom: none; }
   </style>
 </head>
 <body>
@@ -50,6 +54,14 @@
           <input type="password" id="newStaffPin" placeholder="請輸入新 PIN 碼 (限英數字)">
           <button class="btn-secondary" style="width:100%; border-color:#d4af37; color:#d4af37;" onclick="updateMyPin()">確認變更密碼</button>
         </div>
+
+        <!-- 【第一管理員專屬：人員權限管理模組】 -->
+        <div id="superAdminPanel" class="hidden" style="margin-top: 20px; border-top: 1px dashed #555; padding-top: 15px;">
+          <h4 style="color: #d4af37; margin-top: 0; margin-bottom: 10px; text-align: center;">🛡️ 總署人員權限管理</h4>
+          <div id="staffAuthList" style="max-height: 250px; overflow-y: auto;"></div>
+          <button class="sso-btn" style="margin-top: 15px; background: #6c757d; color: white;" onclick="saveStaffAuth()">💾 儲存所有權限變更</button>
+        </div>
+
       </div>
 
       <div class="tabs">
@@ -59,30 +71,17 @@
         <button class="tab-btn" id="btnTab4" onclick="switchTab(4); loadWalletData();">點數錢包</button>
       </div>
 
+      <!-- 下方會員介面維持不變 -->
       <div id="tab1" class="tab-content">
         <div class="card">
           <h2 id="displayName" style="margin-bottom: 5px;">載入中...</h2>
-          <p style="margin-top:0;">
-            <span class="badge" id="displayTier">一般會員</span> 
-            <span class="badge" id="displayPartner">無特約</span>
-          </p>
+          <p style="margin-top:0;"><span class="badge" id="displayTier">一般會員</span><span class="badge" id="displayPartner">無特約</span></p>
           <hr style="border: 0; border-top: 1px dashed var(--border-color); margin: 15px 0;">
-          <div class="info-row">
-            <div class="info-label">專屬編號</div>
-            <div class="info-value" id="userJwId" style="color: var(--primary-color);"></div>
-          </div>
-          <div class="info-row">
-            <div class="info-label">手機號碼</div>
-            <div class="info-value" id="displayPhone"></div>
-          </div>
-          <div class="info-row" style="margin-top: 15px;">
-            <div class="info-label" style="line-height: 28px;">剩餘堂數</div>
-            <div class="info-value"><strong id="displayPackages" style="font-size: 22px; color: #D35400;">0</strong> 堂</div>
-          </div>
-          
+          <div class="info-row"><div class="info-label">專屬編號</div><div class="info-value" id="userJwId" style="color: var(--primary-color);"></div></div>
+          <div class="info-row"><div class="info-label">手機號碼</div><div class="info-value" id="displayPhone"></div></div>
+          <div class="info-row" style="margin-top: 15px;"><div class="info-label" style="line-height: 28px;">剩餘堂數</div><div class="info-value"><strong id="displayPackages" style="font-size: 22px; color: #D35400;">0</strong> 堂</div></div>
           <button id="toggleEditBtn" class="btn-secondary" onclick="toggleEditForm()" style="margin-top: 15px; margin-bottom: 15px;">修改個人資料</button>
           <button class="btn-outline" onclick="goToGeneralCheckIn()" style="margin-bottom: 15px; width: 100%; border-width: 2px;">📝 我要報到</button>
-
           <hr style="border: 0; border-top: 1px dashed var(--border-color); margin: 15px 0;">
           <h3 style="margin-bottom: 15px; font-size: 16px;">📝 您的預約動態</h3>
           <div id="upcomingBookingsContainer"></div>
@@ -94,9 +93,7 @@
           <label>手機號碼</label><input type="tel" id="editPhone" maxlength="10">
           <label>生日</label><input type="date" id="editBirthday">
           <label>性別</label>
-          <select id="editGender">
-            <option value="">請選擇</option><option value="男">男</option><option value="女">女</option><option value="其他">其他</option>
-          </select>
+          <select id="editGender"><option value="">請選擇</option><option value="男">男</option><option value="女">女</option><option value="其他">其他</option></select>
           <button onclick="updateProfile()">儲存修改</button>
           <button class="btn-secondary" onclick="toggleEditForm()">取消修改</button>
         </div>
@@ -112,30 +109,19 @@
             <option value="重點平衡調理 (半身放鬆+全身傳統整復) - [約 60 分鐘]">重點平衡調理 (半身放鬆+全身傳統整復) - [約 60 分鐘]</option>
             <option value="全身深度重整 (全身放鬆+全身傳統整復) - [約 120 分鐘]">全身深度重整 (全身放鬆+全身傳統整復) - [約 120 分鐘]</option>
           </select>
-
           <label>指定師傅 (必填)</label>
           <select id="therapistType">
-            <option value="由中心安排 (不指定)" selected>由中心安排 (不指定)</option>
-            <option value="千芳（女）">千芳（女）</option>
-            <option value="奎元（男）">奎元（男）</option>
+            <option value="由中心安排 (不指定)" selected>由中心安排 (不指定)</option><option value="千芳（女）">千芳（女）</option><option value="奎元（男）">奎元（男）</option>
           </select>
-
-          <label>期望時間 1 (必填)</label>
-          <div class="datetime-group"><input type="date" id="date1"><select id="time1"></select></div>
-          <label>期望時間 2 (選填)</label>
-          <div class="datetime-group"><input type="date" id="date2"><select id="time2"></select></div>
-          <label>期望時間 3 (選填)</label>
-          <div class="datetime-group"><input type="date" id="date3"><select id="time3"></select></div>
-          
-          <label>狀況描述與備註 (選填)</label>
-          <textarea id="bookingRemarks" rows="3" placeholder="請簡單描述狀況與需求（例如：希望女性師傅調理、怕痛...等）"></textarea>
+          <label>期望時間 1 (必填)</label><div class="datetime-group"><input type="date" id="date1"><select id="time1"></select></div>
+          <label>期望時間 2 (選填)</label><div class="datetime-group"><input type="date" id="date2"><select id="time2"></select></div>
+          <label>期望時間 3 (選填)</label><div class="datetime-group"><input type="date" id="date3"><select id="time3"></select></div>
+          <label>狀況描述與備註 (選填)</label><textarea id="bookingRemarks" rows="3" placeholder="請簡單描述狀況與需求（例如：希望女性師傅調理、怕痛...等）"></textarea>
           <button onclick="submitBooking()">送出預約申請</button>
         </div>
       </div>
 
-      <div id="tab3" class="tab-content hidden">
-        <div class="card"><h3>最近調理紀錄</h3><div id="historyList"></div></div>
-      </div>
+      <div id="tab3" class="tab-content hidden"><div class="card"><h3>最近調理紀錄</h3><div id="historyList"></div></div></div>
 
       <div id="tab4" class="tab-content hidden">
         <div class="card wallet-card">
