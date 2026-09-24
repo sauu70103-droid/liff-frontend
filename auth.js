@@ -1,6 +1,6 @@
 /**
  * ============================================================================
- * 錦葳健康美學中心 - 工作人員驗證與隱藏閘道模組 (V3.5 密碼覆寫防禦版)
+ * 錦葳健康美學中心 - 工作人員驗證與隱藏閘道模組 (V3.7 嚴格防呆更新版)
  * ============================================================================
  */
 
@@ -118,6 +118,7 @@ function jumpToSso(target) {
    }
 }
 
+// 【修復核心】：嚴格防呆，阻斷假成功
 function updateMyPin() {
    const newPin = document.getElementById("newStaffPin").value;
    if (!newPin || newPin.length < 4) {
@@ -133,13 +134,22 @@ function updateMyPin() {
       method: 'POST',
       body: JSON.stringify({ action: "updateStaffPin", lineUid: window.userLineUid || "", newPin: newPin })
    }).then(res => res.json()).then(data => {
+      // 必須明確收到 status: "success" 才放行
       if (data.status === "success") {
          Swal.fire('成功', '專屬密碼已更新！通用密碼已對您永久失效。', 'success');
          document.getElementById("newStaffPin").value = "";
       } else {
-         Swal.fire('錯誤', data.message, 'error');
+         // 攔截並印出精準報錯，包含 stack
+         let errMsg = data.message || "發生未知錯誤";
+         if (data.stack) {
+             console.error("Backend Error Stack:", data.stack);
+             errMsg += "\n(詳情請見控制台或通報中央)";
+         }
+         Swal.fire('更新失敗', errMsg, 'error');
       }
-   }).catch(err => { Swal.fire('錯誤', '網路連線異常', 'error'); });
+   }).catch(err => { 
+      Swal.fire('錯誤', '網路連線異常，請稍後再試。', 'error'); 
+   });
 }
 
 function getStaffStamp() {
