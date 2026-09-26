@@ -16,10 +16,14 @@
     .sso-btn.disabled { background: #555; color: #888; cursor: not-allowed; }
     .pin-box { margin-top: 15px; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 5px; }
     .pin-box input { width: calc(100% - 20px); margin-bottom: 10px; background: #222; color: #fff; border: 1px solid #555; }
-    
-    /* SuperAdmin 專屬權限面板樣式 */
     .staff-auth-row { border-bottom: 1px solid #444; padding-bottom: 10px; }
     .staff-auth-row:last-child { border-bottom: none; }
+
+    /* 【V3.2 擴充】：會員圓形質感頭像與歡迎區塊樣式 */
+    .member-header { display: flex; align-items: center; gap: 15px; margin-bottom: 10px; }
+    .member-avatar { width: 64px; height: 64px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary-color, #B9936C); box-shadow: 0 2px 8px rgba(185, 147, 108, 0.25); background-color: #f5f0eb; flex-shrink: 0; }
+    .member-welcome-info { flex: 1; min-width: 0; }
+    .member-welcome-info h2 { margin: 0 0 6px 0; font-size: 20px; word-break: break-all; }
   </style>
 </head>
 <body>
@@ -34,9 +38,12 @@
     
     <div id="bindSection" class="card hidden">
       <h2>會員身分綁定</h2>
-      <p style="color: var(--text-muted);">請輸入您的手機號碼進行驗證。未來開啟將自動登入。</p>
+      <p style="color: var(--text-muted);">初次見面！請確認您的稱呼並輸入手機號碼完成開卡綁定，未來開啟將自動登入。</p>
+      <label>您的姓名 / 稱呼</label>
+      <input type="text" id="bindNameInput" placeholder="請輸入您的姓名">
+      <label>手機號碼 (10碼)</label>
       <input type="tel" id="phoneInput" placeholder="例：0912345678" maxlength="10">
-      <button onclick="bindAccount()">確認綁定</button>
+      <button onclick="bindAccount()">確認綁定開卡</button>
     </div>
 
     <div id="mainSystem" class="hidden">
@@ -61,7 +68,6 @@
           <div id="staffAuthList" style="max-height: 250px; overflow-y: auto;"></div>
           <button class="sso-btn" style="margin-top: 15px; background: #6c757d; color: white;" onclick="saveStaffAuth()">💾 儲存所有權限變更</button>
         </div>
-
       </div>
 
       <div class="tabs">
@@ -71,11 +77,20 @@
         <button class="tab-btn" id="btnTab4" onclick="switchTab(4); loadWalletData();">點數錢包</button>
       </div>
 
-      <!-- 下方會員介面維持不變 -->
       <div id="tab1" class="tab-content">
         <div class="card">
-          <h2 id="displayName" style="margin-bottom: 5px;">載入中...</h2>
-          <p style="margin-top:0;"><span class="badge" id="displayTier">一般會員</span><span class="badge" id="displayPartner">無特約</span></p>
+          <!-- 【V3.2 擴充】：圓形質感頭像與歡迎區塊 (含防破圖 SVG 降級機制) -->
+          <div class="member-header">
+            <img id="memberAvatar" class="member-avatar" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='%23E8DFD5'/><circle cx='50' cy='38' r='18' fill='%23B9936C'/><path d='M20 88 C20 65 80 65 80 88' fill='%23B9936C'/></svg>" alt="會員頭像" onerror="this.onerror=null; this.src=window.DEFAULT_AVATAR_SVG;">
+            <div class="member-welcome-info">
+              <h2 id="displayName">載入中...</h2>
+              <p style="margin:0;">
+                <span class="badge" id="displayTier">一般會員</span> 
+                <span class="badge" id="displayPartner">無特約</span>
+              </p>
+            </div>
+          </div>
+
           <hr style="border: 0; border-top: 1px dashed var(--border-color); margin: 15px 0;">
           <div class="info-row"><div class="info-label">專屬編號</div><div class="info-value" id="userJwId" style="color: var(--primary-color);"></div></div>
           <div class="info-row"><div class="info-label">手機號碼</div><div class="info-value" id="displayPhone"></div></div>
@@ -89,7 +104,7 @@
 
         <div class="card hidden" id="profileEditCard">
           <h3>修改個人資料</h3>
-          <label>姓名</label><input type="text" id="editName">
+          <label>姓名 (修改後將永久優先顯示)</label><input type="text" id="editName" placeholder="請輸入您的真實姓名">
           <label>手機號碼</label><input type="tel" id="editPhone" maxlength="10">
           <label>生日</label><input type="date" id="editBirthday">
           <label>性別</label>
@@ -142,6 +157,27 @@
   <div id="globalLightbox" class="lightbox-overlay" onclick="closeLightbox()">
     <button class="lightbox-close" onclick="closeLightbox()">&times;</button>
     <img id="lightboxImage" class="lightbox-img" src="" alt="放大檢視" onclick="event.stopPropagation()">
+  </div>
+
+  <div class="modal-overlay" id="remoteSignModal">
+    <div class="modal-content" style="max-width: 500px; max-height: 90vh; overflow-y: auto;">
+      <h3 style="text-align: center; color: var(--primary-color); margin-bottom: 10px;">錦葳健康美學中心 - 遠端代付授權</h3>
+      <div style="background: #faf8f5; padding: 15px; border-radius: 8px; margin-bottom: 15px; font-size: 15px; line-height: 1.6;">
+        <strong>消費者姓名：</strong> <span id="rsConsumer">載入中...</span><br>
+        <strong>消費項目：</strong> <span id="rsItem">載入中...</span><br>
+        <strong>扣除總點數：</strong> <span id="rsPoints" style="color: #d9534f; font-weight: bold; font-size: 18px;">0</span> 點<br>
+        <hr style="border: 0; border-top: 1px dashed var(--border-color); margin: 10px 0;">
+        <span style="color: var(--text-muted); font-size: 13px;">扣款後剩餘：<span id="rsRemain">0</span> 點</span>
+      </div>
+      <p class="disclaimer-text" style="font-size: 13px; margin-bottom: 10px;">本人同意自點數錢包扣除上述點數，做為遠端代付之憑證。本授權簽署後即生效，無法撤銷。</p>
+      <div class="canvas-wrapper" id="remoteSignatureWrapper" style="height: 250px; margin-bottom: 15px;">
+        <canvas id="remoteSignaturePad"></canvas>
+      </div>
+      <div class="modal-actions" style="display: flex; gap: 10px;">
+        <button class="btn-secondary" onclick="clearRemoteSignature()" style="flex: 1;">清除重簽</button>
+        <button onclick="closeAndSaveRemoteSign()" style="flex: 2;">確認授權扣款</button>
+      </div>
+    </div>
   </div>
 
   <script src="auth.js"></script>
