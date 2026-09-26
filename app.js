@@ -1,8 +1,20 @@
+/**
+ * ============================================================================
+ * 錦葳健康美學中心 - 前台主邏輯模組 (V3.2 LINE 頭像與智慧姓名同步版)
+ * ============================================================================
+ */
+
 const GAS_URL = "https://script.google.com/macros/s/AKfycbwApGqvuUMuERNtrlEr1NHSKxooH_fD9XF_t1v-iKg_gDJ0kRBqnrKodhjVlIWa-u16sw/exec"; 
 const LIFF_ID = "2011305352-GK5jDrbh"; 
 
-// 確保掛載於 window 以供 auth.js 讀取
+// 品牌質感預設頭像 (SVG Data URI - 絕不破圖)
+window.DEFAULT_AVATAR_SVG = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='%23E8DFD5'/><circle cx='50' cy='38' r='18' fill='%23B9936C'/><path d='M20 88 C20 65 80 65 80 88' fill='%23B9936C'/></svg>";
+
+// 全域 LINE Profile 變數
 window.userLineUid = "";
+window.userDisplayName = "";
+window.userPictureUrl = "";
+
 let currentJwId = "";
 let currentMemberName = "";
 let remoteToken = null;
@@ -15,7 +27,6 @@ window.onload = function() {
   const urlParams = new URLSearchParams(window.location.search);
   remoteToken = urlParams.get('token');
   
-  // 【V2.5 異動：卡死 Timeout 防護】設定 8 秒強制阻斷機制
   let loadTimeout = setTimeout(() => {
     const loader = document.getElementById("loadingMsg");
     if (loader && !loader.classList.contains("hidden")) {
@@ -29,12 +40,12 @@ window.onload = function() {
   
   liff.init({ liffId: LIFF_ID }).then(() => {
     if (!liff.isLoggedIn()) {
-      clearTimeout(loadTimeout); // 清除逾時器
+      clearTimeout(loadTimeout);
       liff.login(); 
     } else {
       getUserDataAndLogin(loadTimeout);
     }
-  }).catch(err => { 
+  }).catch(() => { 
     clearTimeout(loadTimeout);
     document.getElementById("loadingMsg").innerHTML = "<h3>LIFF 載入失敗，請確認網路連線</h3><button onclick='window.location.reload()'>重試</button>"; 
   });
@@ -62,14 +73,28 @@ function setupBookingInputs() {
 
 function getUserDataAndLogin(loadTimeout) {
   liff.getProfile().then(profile => {
-    window.userLineUid = profile.userId;
+    // 【V3.2 抓取完整 Profile】：存入全域變數
+    window.userLineUid = profile.userId || "";
+    window.userDisplayName = profile.displayName || "";
+    window.userPictureUrl = profile.pictureUrl || "";
+
+    // 新客綁定介面預設填入 LINE displayName，減少打字阻力
+    const bindNameInput = document.getElementById("bindNameInput");
+    if (bindNameInput && !bindNameInput.value) {
+      bindNameInput.value = window.userDisplayName;
+    }
+
     fetch(GAS_URL, { 
       method: "POST", 
-      body: JSON.stringify({ action: "autoLogin", lineUid: window.userLineUid }) 
+      body: JSON.stringify({ 
+        action: "autoLogin", 
+        lineUid: window.userLineUid,
+        displayName: window.userDisplayName
+      }) 
     })
     .then(res => res.json())
     .then(data => {
-      clearTimeout(loadTimeout); // 成功連線，解除 Timeout 防護
+      if (loadTimeout) clearTimeout(loadTimeout);
       if (data.status === "success") {
         currentJwId = data.profile.id;
         currentMemberName = data.profile.name; 
@@ -85,8 +110,8 @@ function getUserDataAndLogin(loadTimeout) {
         document.getElementById("loadingMsg").classList.add("hidden");
         document.getElementById("bindSection").classList.remove("hidden");
       }
-    }).catch(err => {
-      clearTimeout(loadTimeout);
+    }).catch(() => {
+      if (loadTimeout) clearTimeout(loadTimeout);
       Swal.fire('錯誤', '網路錯誤，請重新開啟。', 'error');
     });
   });
@@ -94,6 +119,8 @@ function getUserDataAndLogin(loadTimeout) {
 
 function bindAccount() {
   let rawPhone = document.getElementById("phoneInput").value.replace(/\D/g, '');
+  let customName = (document.getElementById("bindNameInput").value || "").trim() || window.userDisplayName;
+
   if(rawPhone.length !== 10 || !rawPhone.startsWith('09')) { 
     Swal.fire('提示', '請輸入完整的 10 碼手機號碼 (09開頭)！', 'warning'); 
     return; 
@@ -105,7 +132,13 @@ function bindAccount() {
 
   fetch(GAS_URL, { 
     method: "POST", 
-    body: JSON.stringify({ action: "bindAccount", lineUid: window.userLineUid, phone: rawPhone }) 
+    body: JSON.stringify({ 
+      action: "bindAccount", 
+      lineUid: window.userLineUid, 
+      phone: rawPhone,
+      displayName: window.userDisplayName,
+      customName: customName
+    }) 
   })
   .then(res => res.json())
   .then(data => {
@@ -130,7 +163,19 @@ function renderDashboard(data) {
   document.getElementById("mainSystem").classList.remove("hidden");
   sessionStorage.setItem("jwProfile", JSON.stringify(data.profile));
   
-  document.getElementById("displayName").textContent = data.profile.name + "，歡迎回家！";
+  // 【V3.2 渲染圓形頭像與防破圖機制】
+  const avatarEl = document.getElementById("memberAvatar");
+  if (avatarEl) {
+    avatarEl.src = (window.userPictureUrl && window.userPictureUrl.trim() !== "") ? window.userPictureUrl : window.DEFAULT_AVATAR_SVG;
+  }
+
+  // 【V3.2 姓名優先級顯示】：後端已確保 B 欄有值時優先回傳 B 欄姓名，否則退回 LINE displayName
+  const effectiveName = (data.profile.name && !data.profile.name.includes("新會員")) 
+                        ? data.profile.name 
+                        : (window.userDisplayName || "尊貴會員");
+  currentMemberName = effectiveName;
+
+  document.getElementById("displayName").textContent = effectiveName + "，歡迎回家！";
   document.getElementById("userJwId").textContent = data.profile.id;
   document.getElementById("displayTier").textContent = data.profile.tier || "一般會員";
   document.getElementById("displayPartner").textContent = data.profile.partner ? ("特約：" + data.profile.partner) : "無特約";
@@ -142,11 +187,12 @@ function renderDashboard(data) {
     if(!isNaN(d)) document.getElementById("editBirthday").value = d.toISOString().split('T')[0];
   }
   
-  document.getElementById("editName").value = (data.profile.name && data.profile.name.includes("新會員")) ? "" : (data.profile.name || "");
+  // 修改個人資料表單預設帶入有效姓名 (或 LINE 暱稱)
+  document.getElementById("editName").value = effectiveName;
   document.getElementById("editPhone").value = data.profile.phone || "";
   document.getElementById("editGender").value = data.profile.gender || "";
 
-  if (!data.profile.phone || !data.profile.birthday || !data.profile.gender || data.profile.name.includes("新會員")) {
+  if (!data.profile.phone || !data.profile.birthday || !data.profile.gender) {
     document.getElementById("profileEditCard").classList.remove("hidden"); 
     document.getElementById("toggleEditBtn").textContent = "隱藏修改表單";
   } else {
@@ -269,7 +315,6 @@ function sendChangeRequest(timeStr, serviceStr, actionType, userMessage) {
   document.getElementById("loadingMsg").classList.remove("hidden"); 
   document.getElementById("mainSystem").classList.add("hidden");
   
-  // 【V2.5 異動】：附加操作人員權限戳記
   let finalMessage = userMessage;
   if(window.getStaffStamp && getStaffStamp() !== "") {
     finalMessage += ` \n ${getStaffStamp()}`;
@@ -277,11 +322,11 @@ function sendChangeRequest(timeStr, serviceStr, actionType, userMessage) {
 
   fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: "changeBooking", memberId: currentJwId, bookingTime: timeStr, serviceType: serviceType, changeType: actionType, userMessage: finalMessage }) })
   .then(res => res.json())
-  .then(data => { 
+  .then(() => { 
     getUserDataAndLogin(); 
     Swal.fire('已送出', '系統已同步更新您的需求，請稍待中心回覆😌', 'success'); 
   })
-  .catch(err => { Swal.fire('錯誤', '網路錯誤，請稍後再試。', 'error'); getUserDataAndLogin(); });
+  .catch(() => { Swal.fire('錯誤', '網路錯誤，請稍後再試。', 'error'); getUserDataAndLogin(); });
 }
 
 function toggleEditForm() {
@@ -292,17 +337,34 @@ function toggleEditForm() {
 }
 
 function updateProfile() {
-  const name = document.getElementById("editName").value;
-  const phone = document.getElementById("editPhone").value;
+  const name = document.getElementById("editName").value.trim();
+  const phone = document.getElementById("editPhone").value.trim();
   const birthday = document.getElementById("editBirthday").value;
   const gender = document.getElementById("editGender").value;
-  if (!name.trim()) { Swal.fire('提示', '請輸入您的姓名！', 'warning'); return; }
+  if (!name) { Swal.fire('提示', '請輸入您的姓名！', 'warning'); return; }
   
-  fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: "updateProfile", memberId: currentJwId, name: name, phone: phone, birthday: birthday, gender: gender }) })
+  Swal.fire({ title: '儲存中...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+  fetch(GAS_URL, { 
+    method: "POST", 
+    body: JSON.stringify({ 
+      action: "updateProfile", 
+      memberId: currentJwId, 
+      lineUid: window.userLineUid,
+      name: name, 
+      phone: phone, 
+      birthday: birthday, 
+      gender: gender 
+    }) 
+  })
   .then(res => res.json())
   .then(data => { 
-    if (data.status === "success") { Swal.fire('成功', '資料更新成功！', 'success'); renderDashboard(data); } 
-    else Swal.fire('錯誤', data.message, 'error'); 
+    if (data.status === "success") { 
+      Swal.fire('成功', '個人資料已更新！系統將永久優先顯示您設定的姓名。', 'success'); 
+      renderDashboard(data); 
+    } else {
+      Swal.fire('錯誤', data.message, 'error'); 
+    }
   });
 }
 
@@ -319,7 +381,6 @@ function submitBooking() {
   
   const fullTime1 = `${date1} ${time1}`; const fullTime2 = (date2 && time2) ? `${date2} ${time2}` : ""; const fullTime3 = (date3 && time3) ? `${date3} ${time3}` : "";
   
-  // 【V2.5 異動】：附加操作人員權限戳記
   if(window.getStaffStamp && getStaffStamp() !== "") {
     remarks += ` \n ${getStaffStamp()}`;
   }
@@ -426,7 +487,7 @@ function handleRemoteSignToken(token) {
     } else {
       Swal.fire('失效', data.message, 'error').then(() => { renderDashboard({profile: JSON.parse(sessionStorage.getItem("jwProfile"))}); });
     }
-  }).catch(err => { Swal.fire('錯誤', '連線異常。', 'error'); });
+  }).catch(() => { Swal.fire('錯誤', '連線異常。', 'error'); });
 }
 
 function fetchWalletAndOpenModal(deductPoints) {
@@ -510,5 +571,5 @@ function closeAndSaveRemoteSign() {
     } else {
       Swal.fire('錯誤', data.message, 'error');
     }
-  }).catch(err => { Swal.fire('錯誤', '網路異常。', 'error'); });
+  }).catch(() => { Swal.fire('錯誤', '網路異常。', 'error'); });
 }
