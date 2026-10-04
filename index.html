@@ -13,13 +13,12 @@
     .admin-portal h3 { color: #d4af37; margin-top: 0; text-align: center; font-size: 18px; border-bottom: 1px dashed #555; padding-bottom: 10px; }
     .sso-btn { display: block; width: 100%; padding: 12px; margin: 8px 0; background: #d4af37; color: #111; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; text-align: center; text-decoration: none; }
     .sso-btn:hover { background: #e6c855; }
-    .sso-btn.disabled { background: #555; color: #888; cursor: not-allowed; }
     .pin-box { margin-top: 15px; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 5px; }
     .pin-box input { width: calc(100% - 20px); margin-bottom: 10px; background: #222; color: #fff; border: 1px solid #555; }
     .staff-auth-row { border-bottom: 1px solid #444; padding-bottom: 10px; }
     .staff-auth-row:last-child { border-bottom: none; }
 
-    /* 【V3.2 擴充】：會員圓形質感頭像與歡迎區塊樣式 */
+    /* 會員圓形質感頭像樣式 */
     .member-header { display: flex; align-items: center; gap: 15px; margin-bottom: 10px; }
     .member-avatar { width: 64px; height: 64px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary-color, #B9936C); box-shadow: 0 2px 8px rgba(185, 147, 108, 0.25); background-color: #f5f0eb; flex-shrink: 0; }
     .member-welcome-info { flex: 1; min-width: 0; }
@@ -33,12 +32,12 @@
     </div>
     
     <div id="loadingMsg" class="card" style="text-align:center;">
-      <h3 style="color: var(--text-muted);">連線至錦葳健康美學中心系統中，請稍候...</h3>
+      <h3 style="color: var(--text-muted);">連線至錦葳系統中，請稍候...</h3>
     </div>
     
     <div id="bindSection" class="card hidden">
       <h2>會員身分綁定</h2>
-      <p style="color: var(--text-muted);">初次見面！請確認您的稱呼並輸入手機號碼完成開卡綁定，未來開啟將自動登入。</p>
+      <p style="color: var(--text-muted);">初次見面！請確認您的稱呼並輸入手機號碼完成開卡，未來開啟將自動登入。</p>
       <label>您的姓名 / 稱呼</label>
       <input type="text" id="bindNameInput" placeholder="請輸入您的姓名">
       <label>手機號碼 (10碼)</label>
@@ -51,10 +50,11 @@
       <!-- 【管理員總署面板】 -->
       <div id="adminPortal" class="admin-portal hidden">
         <h3>👑 錦葳數位總署入口</h3>
-        <p style="font-size:13px; color:#bbb; text-align:center; margin-bottom:15px;">您好，<span id="staffPortalName" style="color:#d4af37; font-weight:bold;"></span>。權限已核發。</p>
+        <p style="font-size:13px; color:#bbb; text-align:center; margin-bottom:15px;">您好，<span id="staffPortalName" style="color:#d4af37; font-weight:bold;"></span>。</p>
         
-        <button id="btnMiddle" class="sso-btn disabled" onclick="jumpToSso('middle')">🚀 進入中台 (師傅系統)</button>
-        <button id="btnStore" class="sso-btn disabled" onclick="jumpToSso('store')">📊 進入後台 (店務與財務)</button>
+        <!-- 【解除死鎖】：預設即為可點擊狀態 -->
+        <button id="btnMiddle" class="sso-btn" onclick="jumpToSso('middle')">🚀 進入中台 (師傅系統)</button>
+        <button id="btnStore" class="sso-btn" onclick="jumpToSso('store')">📊 進入後台 (店務與財務)</button>
         
         <div class="pin-box">
           <p style="font-size:13px; color:#ccc; margin-top:0;">🔐 變更自訂密碼 (更新後通用密碼將失效)</p>
@@ -62,7 +62,6 @@
           <button class="btn-secondary" style="width:100%; border-color:#d4af37; color:#d4af37;" onclick="updateMyPin()">確認變更密碼</button>
         </div>
 
-        <!-- 【第一管理員專屬：人員權限管理模組】 -->
         <div id="superAdminPanel" class="hidden" style="margin-top: 20px; border-top: 1px dashed #555; padding-top: 15px;">
           <h4 style="color: #d4af37; margin-top: 0; margin-bottom: 10px; text-align: center;">🛡️ 總署人員權限管理</h4>
           <div id="staffAuthList" style="max-height: 250px; overflow-y: auto;"></div>
@@ -79,7 +78,7 @@
 
       <div id="tab1" class="tab-content">
         <div class="card">
-          <!-- 【V3.2 擴充】：圓形質感頭像與歡迎區塊 (含防破圖 SVG 降級機制) -->
+          <!-- 圓形質感頭像與歡迎區塊 -->
           <div class="member-header">
             <img id="memberAvatar" class="member-avatar" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='%23E8DFD5'/><circle cx='50' cy='38' r='18' fill='%23B9936C'/><path d='M20 88 C20 65 80 65 80 88' fill='%23B9936C'/></svg>" alt="會員頭像" onerror="this.onerror=null; this.src=window.DEFAULT_AVATAR_SVG;">
             <div class="member-welcome-info">
@@ -157,27 +156,6 @@
   <div id="globalLightbox" class="lightbox-overlay" onclick="closeLightbox()">
     <button class="lightbox-close" onclick="closeLightbox()">&times;</button>
     <img id="lightboxImage" class="lightbox-img" src="" alt="放大檢視" onclick="event.stopPropagation()">
-  </div>
-
-  <div class="modal-overlay" id="remoteSignModal">
-    <div class="modal-content" style="max-width: 500px; max-height: 90vh; overflow-y: auto;">
-      <h3 style="text-align: center; color: var(--primary-color); margin-bottom: 10px;">錦葳健康美學中心 - 遠端代付授權</h3>
-      <div style="background: #faf8f5; padding: 15px; border-radius: 8px; margin-bottom: 15px; font-size: 15px; line-height: 1.6;">
-        <strong>消費者姓名：</strong> <span id="rsConsumer">載入中...</span><br>
-        <strong>消費項目：</strong> <span id="rsItem">載入中...</span><br>
-        <strong>扣除總點數：</strong> <span id="rsPoints" style="color: #d9534f; font-weight: bold; font-size: 18px;">0</span> 點<br>
-        <hr style="border: 0; border-top: 1px dashed var(--border-color); margin: 10px 0;">
-        <span style="color: var(--text-muted); font-size: 13px;">扣款後剩餘：<span id="rsRemain">0</span> 點</span>
-      </div>
-      <p class="disclaimer-text" style="font-size: 13px; margin-bottom: 10px;">本人同意自點數錢包扣除上述點數，做為遠端代付之憑證。本授權簽署後即生效，無法撤銷。</p>
-      <div class="canvas-wrapper" id="remoteSignatureWrapper" style="height: 250px; margin-bottom: 15px;">
-        <canvas id="remoteSignaturePad"></canvas>
-      </div>
-      <div class="modal-actions" style="display: flex; gap: 10px;">
-        <button class="btn-secondary" onclick="clearRemoteSignature()" style="flex: 1;">清除重簽</button>
-        <button onclick="closeAndSaveRemoteSign()" style="flex: 2;">確認授權扣款</button>
-      </div>
-    </div>
   </div>
 
   <script src="auth.js"></script>
