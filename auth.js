@@ -1,10 +1,9 @@
 /**
  * ============================================================================
- * 錦葳健康美學中心 - 工作人員驗證與隱藏閘道模組 (V3.1 硬編碼與純布林解鎖版)
+ * 錦葳健康美學中心 - 總署入口與驗證模組 (V3.1 極簡跳轉解鎖版)
  * ============================================================================
  */
 
-// 【V3.1 強制硬編碼】：直接宣告中台與後台 LIFF 網址常數，徹底脫離後端保險箱依賴
 const MIDDLE_LIFF_URL = "https://liff.line.me/2010124473-hpqQUkHn";
 const STORE_LIFF_URL = "https://liff.line.me/2010453415-nTX3Lo1L";
 
@@ -37,7 +36,7 @@ function initHiddenGateway() {
         }).catch(() => {});
       }
     } catch (e) {
-      console.error("Hidden gateway check error:", e);
+      console.error("Hidden gateway error:", e);
     }
   });
 }
@@ -67,20 +66,16 @@ function promptStaffLogin() {
   }).then((result) => {
     if (result.isConfirmed && result.value) {
       if (result.value.status === "success") {
-        // 強制正規化布林值存入本地 Token
         const rawStaff = result.value.staff || {};
         const normalizedStaff = {
           name: rawStaff.name || "工作人員",
-          isSuperAdmin: Boolean(rawStaff.isSuperAdmin === true),
-          authMiddle: Boolean(rawStaff.authMiddle === true),
-          authStore: Boolean(rawStaff.authStore === true),
-          authFinance: Boolean(rawStaff.authFinance === true)
+          isSuperAdmin: Boolean(rawStaff.isSuperAdmin)
         };
         localStorage.setItem("jwStaffToken", JSON.stringify(normalizedStaff));
         Swal.fire({ 
           icon: 'success', 
           title: '授權成功', 
-          text: `歡迎回來，${normalizedStaff.name}！權限已開通。`, 
+          text: `歡迎回來，${normalizedStaff.name}！`, 
           confirmButtonColor: '#B9936C' 
         }).then(() => {
           showAdminPortal();
@@ -103,25 +98,11 @@ function showAdminPortal() {
     const staff = JSON.parse(token);
     document.getElementById("staffPortalName").textContent = staff.name || "工作人員";
     
+    // 【極簡化】：直接讓跳轉按鈕完全解鎖，不作前端權限阻擋，由接收端自行判定
     const btnMid = document.getElementById("btnMiddle");
     const btnStore = document.getElementById("btnStore");
-    
-    // 【V3.1 解除按鈕死鎖】：嚴格接收純布林值 true 解鎖按鈕
-    if (staff.authMiddle === true) {
-      btnMid.classList.remove("disabled");
-      btnMid.disabled = false;
-    } else {
-      btnMid.classList.add("disabled");
-      btnMid.disabled = true;
-    }
-    
-    if (staff.authStore === true || staff.authFinance === true) {
-      btnStore.classList.remove("disabled");
-      btnStore.disabled = false;
-    } else {
-      btnStore.classList.add("disabled");
-      btnStore.disabled = true;
-    }
+    if (btnMid) { btnMid.classList.remove("disabled"); btnMid.disabled = false; }
+    if (btnStore) { btnStore.classList.remove("disabled"); btnStore.disabled = false; }
     
     portal.classList.remove("hidden");
 
@@ -137,24 +118,13 @@ function showAdminPortal() {
   }
 }
 
-// 【V3.1 跳轉發射器】：死綁硬編碼常數並掛載 ?sso_auth=true
+// 【直接跳轉】：死綁硬編碼常數
 function jumpToSso(target) {
   try {
-    const token = localStorage.getItem("jwStaffToken");
-    const staff = token ? JSON.parse(token) : {};
-
     if (target === 'middle') {
-      if (staff.authMiddle === true) {
-        window.location.href = MIDDLE_LIFF_URL + "?sso_auth=true&source=hq";
-      } else {
-        Swal.fire('權限不足', '您尚未開通「中台 (師傅系統)」存取權限。', 'warning');
-      }
+      window.location.href = MIDDLE_LIFF_URL + "?sso_auth=true&source=hq";
     } else if (target === 'store') {
-      if (staff.authStore === true || staff.authFinance === true) {
-        window.location.href = STORE_LIFF_URL + "?sso_auth=true&source=hq";
-      } else {
-        Swal.fire('權限不足', '您尚未開通「後台 (店務與財務)」存取權限。', 'warning');
-      }
+      window.location.href = STORE_LIFF_URL + "?sso_auth=true&source=hq";
     }
   } catch (e) {
     Swal.fire('跳轉異常', '請重新點擊 Logo 驗證後再試。', 'error');
