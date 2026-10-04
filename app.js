@@ -7,7 +7,7 @@
 const GAS_URL = "https://script.google.com/macros/s/AKfycbwApGqvuUMuERNtrlEr1NHSKxooH_fD9XF_t1v-iKg_gDJ0kRBqnrKodhjVlIWa-u16sw/exec"; 
 const LIFF_ID = "2011305352-GK5jDrbh"; 
 
-// 品牌質感預設頭像 (SVG Data URI - 絕不破圖)
+// 品牌質感預設頭像 (防破圖降級用)
 window.DEFAULT_AVATAR_SVG = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='%23E8DFD5'/><circle cx='50' cy='38' r='18' fill='%23B9936C'/><path d='M20 88 C20 65 80 65 80 88' fill='%23B9936C'/></svg>";
 
 // 全域 LINE Profile 變數
@@ -73,12 +73,10 @@ function setupBookingInputs() {
 
 function getUserDataAndLogin(loadTimeout) {
   liff.getProfile().then(profile => {
-    // 【V3.2 抓取完整 Profile】：存入全域變數
     window.userLineUid = profile.userId || "";
     window.userDisplayName = profile.displayName || "";
     window.userPictureUrl = profile.pictureUrl || "";
 
-    // 新客綁定介面預設填入 LINE displayName，減少打字阻力
     const bindNameInput = document.getElementById("bindNameInput");
     if (bindNameInput && !bindNameInput.value) {
       bindNameInput.value = window.userDisplayName;
@@ -163,13 +161,11 @@ function renderDashboard(data) {
   document.getElementById("mainSystem").classList.remove("hidden");
   sessionStorage.setItem("jwProfile", JSON.stringify(data.profile));
   
-  // 【V3.2 渲染圓形頭像與防破圖機制】
   const avatarEl = document.getElementById("memberAvatar");
   if (avatarEl) {
     avatarEl.src = (window.userPictureUrl && window.userPictureUrl.trim() !== "") ? window.userPictureUrl : window.DEFAULT_AVATAR_SVG;
   }
 
-  // 【V3.2 姓名優先級顯示】：後端已確保 B 欄有值時優先回傳 B 欄姓名，否則退回 LINE displayName
   const effectiveName = (data.profile.name && !data.profile.name.includes("新會員")) 
                         ? data.profile.name 
                         : (window.userDisplayName || "尊貴會員");
@@ -187,7 +183,6 @@ function renderDashboard(data) {
     if(!isNaN(d)) document.getElementById("editBirthday").value = d.toISOString().split('T')[0];
   }
   
-  // 修改個人資料表單預設帶入有效姓名 (或 LINE 暱稱)
   document.getElementById("editName").value = effectiveName;
   document.getElementById("editPhone").value = data.profile.phone || "";
   document.getElementById("editGender").value = data.profile.gender || "";
