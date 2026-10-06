@@ -1,6 +1,6 @@
 /**
  * ============================================================================
- * 錦葳健康美學中心 - 總署入口與驗證模組 (V3.1 極簡跳轉解鎖版)
+ * 錦葳健康美學中心 - 總署入口與驗證模組 (V3.3 SSO 純淨通行證版)
  * ============================================================================
  */
 
@@ -98,7 +98,6 @@ function showAdminPortal() {
     const staff = JSON.parse(token);
     document.getElementById("staffPortalName").textContent = staff.name || "工作人員";
     
-    // 【極簡化】：直接讓跳轉按鈕完全解鎖，不作前端權限阻擋，由接收端自行判定
     const btnMid = document.getElementById("btnMiddle");
     const btnStore = document.getElementById("btnStore");
     if (btnMid) { btnMid.classList.remove("disabled"); btnMid.disabled = false; }
@@ -118,13 +117,13 @@ function showAdminPortal() {
   }
 }
 
-// 【直接跳轉】：死綁硬編碼常數
+// 【V3.3 升級】：純淨夾帶 ?sso_auth=true 通行證參數
 function jumpToSso(target) {
   try {
     if (target === 'middle') {
-      window.location.href = MIDDLE_LIFF_URL + "?sso_auth=true&source=hq";
+      window.location.href = MIDDLE_LIFF_URL + "?sso_auth=true";
     } else if (target === 'store') {
-      window.location.href = STORE_LIFF_URL + "?sso_auth=true&source=hq";
+      window.location.href = STORE_LIFF_URL + "?sso_auth=true";
     }
   } catch (e) {
     Swal.fire('跳轉異常', '請重新點擊 Logo 驗證後再試。', 'error');
