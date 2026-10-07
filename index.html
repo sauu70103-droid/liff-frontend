@@ -47,14 +47,10 @@
 
     <div id="mainSystem" class="hidden">
       
-      <!-- 【管理員總署面板】 -->
+      <!-- 【管理員總署面板 (V4.0 極簡解耦版)】 -->
       <div id="adminPortal" class="admin-portal hidden">
         <h3>👑 錦葳數位總署入口</h3>
         <p style="font-size:13px; color:#bbb; text-align:center; margin-bottom:15px;">您好，<span id="staffPortalName" style="color:#d4af37; font-weight:bold;"></span>。</p>
-        
-        <!-- 【解除死鎖】：預設即為可點擊狀態 -->
-        <button id="btnMiddle" class="sso-btn" onclick="jumpToSso('middle')">🚀 進入中台 (師傅系統)</button>
-        <button id="btnStore" class="sso-btn" onclick="jumpToSso('store')">📊 進入後台 (店務與財務)</button>
         
         <div class="pin-box">
           <p style="font-size:13px; color:#ccc; margin-top:0;">🔐 變更自訂密碼 (更新後通用密碼將失效)</p>
@@ -156,6 +152,27 @@
   <div id="globalLightbox" class="lightbox-overlay" onclick="closeLightbox()">
     <button class="lightbox-close" onclick="closeLightbox()">&times;</button>
     <img id="lightboxImage" class="lightbox-img" src="" alt="放大檢視" onclick="event.stopPropagation()">
+  </div>
+
+  <div class="modal-overlay" id="remoteSignModal">
+    <div class="modal-content" style="max-width: 500px; max-height: 90vh; overflow-y: auto;">
+      <h3 style="text-align: center; color: var(--primary-color); margin-bottom: 10px;">錦葳健康美學中心 - 遠端代付授權</h3>
+      <div style="background: #faf8f5; padding: 15px; border-radius: 8px; margin-bottom: 15px; font-size: 15px; line-height: 1.6;">
+        <strong>消費者姓名：</strong> <span id="rsConsumer">載入中...</span><br>
+        <strong>消費項目：</strong> <span id="rsItem">載入中...</span><br>
+        <strong>扣除總點數：</strong> <span id="rsPoints" style="color: #d9534f; font-weight: bold; font-size: 18px;">0</span> 點<br>
+        <hr style="border: 0; border-top: 1px dashed var(--border-color); margin: 10px 0;">
+        <span style="color: var(--text-muted); font-size: 13px;">扣款後剩餘：<span id="rsRemain">0</span> 點</span>
+      </div>
+      <p class="disclaimer-text" style="font-size: 13px; margin-bottom: 10px;">本人同意自點數錢包扣除上述點數，做為遠端代付之憑證。本授權簽署後即生效，無法撤銷。</p>
+      <div class="canvas-wrapper" id="remoteSignatureWrapper" style="height: 250px; margin-bottom: 15px;">
+        <canvas id="remoteSignaturePad"></canvas>
+      </div>
+      <div class="modal-actions" style="display: flex; gap: 10px;">
+        <button class="btn-secondary" onclick="clearRemoteSignature()" style="flex: 1;">清除重簽</button>
+        <button onclick="closeAndSaveRemoteSign()" style="flex: 2;">確認授權扣款</button>
+      </div>
+    </div>
   </div>
 
   <script src="auth.js"></script>
