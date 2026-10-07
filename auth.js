@@ -1,11 +1,8 @@
 /**
  * ============================================================================
- * 錦葳健康美學中心 - 總署入口與驗證模組 (V3.3 SSO 純淨通行證版)
+ * 錦葳健康美學中心 - 總署入口與驗證模組 (V4.0 極簡解耦版)
  * ============================================================================
  */
-
-const MIDDLE_LIFF_URL = "https://liff.line.me/2010124473-hpqQUkHn";
-const STORE_LIFF_URL = "https://liff.line.me/2010453415-nTX3Lo1L";
 
 function initHiddenGateway() {
   const logo = document.getElementById("mainLogo");
@@ -98,11 +95,6 @@ function showAdminPortal() {
     const staff = JSON.parse(token);
     document.getElementById("staffPortalName").textContent = staff.name || "工作人員";
     
-    const btnMid = document.getElementById("btnMiddle");
-    const btnStore = document.getElementById("btnStore");
-    if (btnMid) { btnMid.classList.remove("disabled"); btnMid.disabled = false; }
-    if (btnStore) { btnStore.classList.remove("disabled"); btnStore.disabled = false; }
-    
     portal.classList.remove("hidden");
 
     if (staff.isSuperAdmin === true || window.userLineUid === "Udb1efc9c39494178114788d794028649") {
@@ -114,19 +106,6 @@ function showAdminPortal() {
     }
   } catch (e) {
     console.error("Render Admin Portal Error:", e);
-  }
-}
-
-// 【V3.3 升級】：純淨夾帶 ?sso_auth=true 通行證參數
-function jumpToSso(target) {
-  try {
-    if (target === 'middle') {
-      window.location.href = MIDDLE_LIFF_URL + "?sso_auth=true";
-    } else if (target === 'store') {
-      window.location.href = STORE_LIFF_URL + "?sso_auth=true";
-    }
-  } catch (e) {
-    Swal.fire('跳轉異常', '請重新點擊 Logo 驗證後再試。', 'error');
   }
 }
 
