@@ -8,15 +8,11 @@
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <link rel="stylesheet" href="style.css">
   <style>
-    /* 管理員總署專屬 UI 樣式 */
-    .admin-portal { background: linear-gradient(135deg, #1c1c1c, #3a3a3a); color: white; border: 1px solid #d4af37; border-radius: 8px; padding: 15px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
-    .admin-portal h3 { color: #d4af37; margin-top: 0; text-align: center; font-size: 18px; border-bottom: 1px dashed #555; padding-bottom: 10px; }
-    .sso-btn { display: block; width: 100%; padding: 12px; margin: 8px 0; background: #d4af37; color: #111; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; text-align: center; text-decoration: none; }
-    .sso-btn:hover { background: #e6c855; }
-    .pin-box { margin-top: 15px; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 5px; }
-    .pin-box input { width: calc(100% - 20px); margin-bottom: 10px; background: #222; color: #fff; border: 1px solid #555; }
-    .staff-auth-row { border-bottom: 1px solid #444; padding-bottom: 10px; }
-    .staff-auth-row:last-child { border-bottom: none; }
+    /* 管理員專區專屬 UI 樣式 */
+    .admin-hub { background: linear-gradient(135deg, #1c1c1c, #3a3a3a); color: white; border: 1px solid #d4af37; border-radius: 8px; padding: 15px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+    .admin-hub h3 { color: #d4af37; margin-top: 0; text-align: center; font-size: 18px; border-bottom: 1px dashed #555; padding-bottom: 10px; }
+    .hub-btn { display: block; width: 100%; padding: 12px; margin: 8px 0; background: #d4af37; color: #111; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; text-align: center; text-decoration: none; }
+    .hub-btn:hover { background: #e6c855; }
 
     /* 會員圓形質感頭像樣式 */
     .member-header { display: flex; align-items: center; gap: 15px; margin-bottom: 10px; }
@@ -47,22 +43,12 @@
 
     <div id="mainSystem" class="hidden">
       
-      <!-- 【管理員總署面板 (V4.0 極簡解耦版)】 -->
-      <div id="adminPortal" class="admin-portal hidden">
-        <h3>👑 錦葳數位總署入口</h3>
-        <p style="font-size:13px; color:#bbb; text-align:center; margin-bottom:15px;">您好，<span id="staffPortalName" style="color:#d4af37; font-weight:bold;"></span>。</p>
-        
-        <div class="pin-box">
-          <p style="font-size:13px; color:#ccc; margin-top:0;">🔐 變更自訂密碼 (更新後通用密碼將失效)</p>
-          <input type="password" id="newStaffPin" placeholder="請輸入新 PIN 碼 (限英數字)">
-          <button class="btn-secondary" style="width:100%; border-color:#d4af37; color:#d4af37;" onclick="updateMyPin()">確認變更密碼</button>
-        </div>
-
-        <div id="superAdminPanel" class="hidden" style="margin-top: 20px; border-top: 1px dashed #555; padding-top: 15px;">
-          <h4 style="color: #d4af37; margin-top: 0; margin-bottom: 10px; text-align: center;">🛡️ 總署人員權限管理</h4>
-          <div id="staffAuthList" style="max-height: 250px; overflow-y: auto;"></div>
-          <button class="sso-btn" style="margin-top: 15px; background: #6c757d; color: white;" onclick="saveStaffAuth()">💾 儲存所有權限變更</button>
-        </div>
+      <!-- 【V4.7 動態管理員專區 (Admin Hub)】預設隱藏 -->
+      <div id="adminHub" class="admin-hub hidden" style="display: none;">
+        <h3>👑 總署樞紐通道</h3>
+        <p style="font-size:13px; color:#bbb; text-align:center; margin-bottom:15px;">歡迎登入，管理員專屬通道已解鎖。</p>
+        <button class="hub-btn" onclick="window.location.href='https://liff.line.me/2011305352-4pz0hBKV'">🟡 進入中台調理系統</button>
+        <button class="hub-btn" onclick="window.location.href='https://liff.line.me/2011305352-C27AFX04'">🟠 進入後台店務系統</button>
       </div>
 
       <div class="tabs">
@@ -74,7 +60,6 @@
 
       <div id="tab1" class="tab-content">
         <div class="card">
-          <!-- 圓形質感頭像與歡迎區塊 -->
           <div class="member-header">
             <img id="memberAvatar" class="member-avatar" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='%23E8DFD5'/><circle cx='50' cy='38' r='18' fill='%23B9936C'/><path d='M20 88 C20 65 80 65 80 88' fill='%23B9936C'/></svg>" alt="會員頭像" onerror="this.onerror=null; this.src=window.DEFAULT_AVATAR_SVG;">
             <div class="member-welcome-info">
@@ -175,7 +160,6 @@
     </div>
   </div>
 
-  <script src="auth.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
