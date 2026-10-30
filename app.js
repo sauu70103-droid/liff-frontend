@@ -1,16 +1,17 @@
 /**
  * ============================================================================
- * 錦葳健康美學中心 - 前台主邏輯模組 (V3.2 LINE 頭像與智慧姓名同步版)
+ * 錦葳健康美學中心 - 前台主邏輯模組 (V4.7 總署樞紐通道版)
  * ============================================================================
  */
 
 const GAS_URL = "https://script.google.com/macros/s/AKfycbwApGqvuUMuERNtrlEr1NHSKxooH_fD9XF_t1v-iKg_gDJ0kRBqnrKodhjVlIWa-u16sw/exec"; 
 const LIFF_ID = "2011305352-GK5jDrbh"; 
 
-// 品牌質感預設頭像 (防破圖降級用)
+// 【V4.7 白名單】：總署指定之管理員 LINE UID
+const ADMIN_UIDS = ["Udb1efc9c39494178114788d794028649", "U11376dff05337ec6ff7042b204cbff58"];
+
 window.DEFAULT_AVATAR_SVG = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='%23E8DFD5'/><circle cx='50' cy='38' r='18' fill='%23B9936C'/><path d='M20 88 C20 65 80 65 80 88' fill='%23B9936C'/></svg>";
 
-// 全域 LINE Profile 變數
 window.userLineUid = "";
 window.userDisplayName = "";
 window.userPictureUrl = "";
@@ -53,7 +54,6 @@ window.onload = function() {
 
 function setupBookingInputs() {
   const todayString = new Date(new Date().getTime() - (new Date().getTimezoneOffset() * 60000)).toISOString().split('T')[0];
-  
   document.getElementById("date1").min = todayString; 
   document.getElementById("date2").min = todayString; 
   document.getElementById("date3").min = todayString;
@@ -65,7 +65,6 @@ function setupBookingInputs() {
     optionsHtml += `<option value="${hour}:30">${hour}:30</option>`;
   }
   optionsHtml += `<option value="17:00">17:00</option>`;
-  
   document.getElementById("time1").innerHTML = optionsHtml; 
   document.getElementById("time2").innerHTML = optionsHtml; 
   document.getElementById("time3").innerHTML = optionsHtml;
@@ -76,6 +75,15 @@ function getUserDataAndLogin(loadTimeout) {
     window.userLineUid = profile.userId || "";
     window.userDisplayName = profile.displayName || "";
     window.userPictureUrl = profile.pictureUrl || "";
+
+    // 【V4.7 核心】：極速白名單驗證，瞬間顯示總署通道
+    if (ADMIN_UIDS.includes(window.userLineUid)) {
+      const adminHub = document.getElementById("adminHub");
+      if (adminHub) {
+        adminHub.classList.remove("hidden");
+        adminHub.style.display = "block";
+      }
+    }
 
     const bindNameInput = document.getElementById("bindNameInput");
     if (bindNameInput && !bindNameInput.value) {
@@ -311,9 +319,6 @@ function sendChangeRequest(timeStr, serviceStr, actionType, userMessage) {
   document.getElementById("mainSystem").classList.add("hidden");
   
   let finalMessage = userMessage;
-  if(window.getStaffStamp && getStaffStamp() !== "") {
-    finalMessage += ` \n ${getStaffStamp()}`;
-  }
 
   fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: "changeBooking", memberId: currentJwId, bookingTime: timeStr, serviceType: serviceType, changeType: actionType, userMessage: finalMessage }) })
   .then(res => res.json())
@@ -375,10 +380,6 @@ function submitBooking() {
   if (!date1 || !time1) { Swal.fire('提示', '期望時間 1 為必填！', 'warning'); return; }
   
   const fullTime1 = `${date1} ${time1}`; const fullTime2 = (date2 && time2) ? `${date2} ${time2}` : ""; const fullTime3 = (date3 && time3) ? `${date3} ${time3}` : "";
-  
-  if(window.getStaffStamp && getStaffStamp() !== "") {
-    remarks += ` \n ${getStaffStamp()}`;
-  }
 
   Swal.fire({ title: '處理中...', text: '正在送出您的預約', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
   
