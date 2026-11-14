@@ -8,13 +8,11 @@
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <link rel="stylesheet" href="style.css">
   <style>
-    /* 管理員專區專屬 UI 樣式 */
     .admin-hub { background: linear-gradient(135deg, #1c1c1c, #3a3a3a); color: white; border: 1px solid #d4af37; border-radius: 8px; padding: 15px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
     .admin-hub h3 { color: #d4af37; margin-top: 0; text-align: center; font-size: 18px; border-bottom: 1px dashed #555; padding-bottom: 10px; }
     .hub-btn { display: block; width: 100%; padding: 12px; margin: 8px 0; background: #d4af37; color: #111; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; text-align: center; text-decoration: none; }
     .hub-btn:hover { background: #e6c855; }
 
-    /* 會員圓形質感頭像樣式 */
     .member-header { display: flex; align-items: center; gap: 15px; margin-bottom: 10px; }
     .member-avatar { width: 64px; height: 64px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary-color, #B9936C); box-shadow: 0 2px 8px rgba(185, 147, 108, 0.25); background-color: #f5f0eb; flex-shrink: 0; }
     .member-welcome-info { flex: 1; min-width: 0; }
@@ -43,7 +41,6 @@
 
     <div id="mainSystem" class="hidden">
       
-      <!-- 【V4.7 動態管理員專區 (Admin Hub)】預設隱藏 -->
       <div id="adminHub" class="admin-hub hidden" style="display: none;">
         <h3>👑 總署樞紐通道</h3>
         <p style="font-size:13px; color:#bbb; text-align:center; margin-bottom:15px;">歡迎登入，管理員專屬通道已解鎖。</p>
@@ -100,7 +97,8 @@
           <label>方案</label>
           <select id="serviceType">
             <option value="無痛滑罐放鬆 (快速舒緩) - [約 30 分鐘]">無痛滑罐放鬆 (快速舒緩) - [約 30 分鐘]</option>
-            <option value="單部位傳統整復 (依部位收費及調理) - [約 30 分鐘]">單部位傳統整復 (依部位收費及調理) - [約 30 分鐘]</option>
+            <!-- 【V4.10 優化】：移除時間標示 -->
+            <option value="單部位傳統整復 (依部位收費及調理)">單部位傳統整復 (依部位收費及調理)</option>
             <option value="重點平衡調理 (半身放鬆+全身傳統整復) - [約 60 分鐘]">重點平衡調理 (半身放鬆+全身傳統整復) - [約 60 分鐘]</option>
             <option value="全身深度重整 (全身放鬆+全身傳統整復) - [約 120 分鐘]">全身深度重整 (全身放鬆+全身傳統整復) - [約 120 分鐘]</option>
           </select>
