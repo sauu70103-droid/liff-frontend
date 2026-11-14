@@ -1,15 +1,13 @@
 /**
  * ============================================================================
- * 錦葳健康美學中心 - 前台主邏輯模組 (V4.7 總署樞紐通道版)
+ * 錦葳健康美學中心 - 前台主邏輯模組 (V4.10 預約動線優化版)
  * ============================================================================
  */
 
 const GAS_URL = "https://script.google.com/macros/s/AKfycbwApGqvuUMuERNtrlEr1NHSKxooH_fD9XF_t1v-iKg_gDJ0kRBqnrKodhjVlIWa-u16sw/exec"; 
 const LIFF_ID = "2011305352-GK5jDrbh"; 
 
-// 【V4.7 白名單】：總署指定之管理員 LINE UID
 const ADMIN_UIDS = ["Udb1efc9c39494178114788d794028649", "U11376dff05337ec6ff7042b204cbff58"];
-
 window.DEFAULT_AVATAR_SVG = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='%23E8DFD5'/><circle cx='50' cy='38' r='18' fill='%23B9936C'/><path d='M20 88 C20 65 80 65 80 88' fill='%23B9936C'/></svg>";
 
 window.userLineUid = "";
@@ -76,7 +74,6 @@ function getUserDataAndLogin(loadTimeout) {
     window.userDisplayName = profile.displayName || "";
     window.userPictureUrl = profile.pictureUrl || "";
 
-    // 【V4.7 核心】：極速白名單驗證，瞬間顯示總署通道
     if (ADMIN_UIDS.includes(window.userLineUid)) {
       const adminHub = document.getElementById("adminHub");
       if (adminHub) {
@@ -368,6 +365,7 @@ function updateProfile() {
   });
 }
 
+// 【V4.10 客服動線優化】：在送出預約成功後，加入 LINE 引導，並實作閉合視窗按鈕
 function submitBooking() {
   const therapist = document.getElementById("therapistType").value;
   const date1 = document.getElementById("date1").value, time1 = document.getElementById("time1").value;
@@ -387,14 +385,30 @@ function submitBooking() {
   .then(res => res.json())
   .then(data => {
     if (data.status === "success") {
-      Swal.fire('申請已送出', '我們會盡快確認您的預約時間。', 'success');
+      // 升級成功提示框，加入回傳 LINE 的引導與 liff.closeWindow()
+      Swal.fire({
+        icon: 'success',
+        title: '預約請求已送出！',
+        html: '<p style="font-size:15px;">請務必在官方 LINE <b>回傳一個貼圖或發送訊息</b>，以便我們為您確認保留時段與後續聯繫。</p>',
+        showCancelButton: true,
+        confirmButtonText: '回到 LINE 聊天室',
+        cancelButtonText: '繼續留在系統',
+        confirmButtonColor: '#B9936C'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          liff.closeWindow(); // 一鍵跳回官方帳號
+        }
+      });
+
       document.getElementById("therapistType").value = "由中心安排 (不指定)";
       document.getElementById("date1").value = ""; document.getElementById("time1").value = ""; 
       document.getElementById("date2").value = ""; document.getElementById("time2").value = ""; 
       document.getElementById("date3").value = ""; document.getElementById("time3").value = ""; document.getElementById("bookingRemarks").value = ""; 
       document.getElementById("loadingMsg").classList.remove("hidden"); document.getElementById("mainSystem").classList.add("hidden");
       getUserDataAndLogin();
-    } else Swal.fire('錯誤', data.message, 'error'); 
+    } else {
+      Swal.fire('錯誤', data.message, 'error'); 
+    }
   });
 }
 
